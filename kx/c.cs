@@ -46,7 +46,7 @@ namespace kx
 
 		private static double nf = double.NaN;
 
-		private static object[] NU = new object[20]
+		private static object[] KNullValues = new object[20]
 		{
 			null,
 			false,
@@ -69,6 +69,9 @@ namespace kx
 			new Second(ni),
 			new TimeSpan(nj)
 		};
+
+		private static readonly char[] KNullCharIds = " bg xhijefcspmdznuvt"
+			.ToCharArray();
 
 		private static DateTime za = DateTime.MinValue.AddTicks(1L);
 
@@ -377,15 +380,36 @@ namespace kx
 		/// </returns>
 		public static object NULL(Type t)
 		{
-			for (int i = 0; i < NU.Length; i++)
+			for (int i = 0; i < KNullValues.Length; i++)
 			{
-				if (NU[i] != null &&
-					t == NU[i].GetType())
+				if (KNullValues[i] != null &&
+					t == KNullValues[i].GetType())
 				{
-					return NU[i];
+					return KNullValues[i];
 				}
 			}
 			return null;
+		}
+
+		/// <summary>
+		/// Gest the null object for the specified <see cref="char"/> id.
+		/// </summary>
+		/// <param name="c">The character id.</param>
+		/// <returns>
+		/// Instance of null object of specified KDB+ type.
+		/// </returns>
+		/// <exception cref="ArgumentException"><paramref name="c"/> character is not recognised.</exception>
+		public static object NULL(char c)
+		{
+			int index = Array.IndexOf(KNullCharIds, c);
+
+			if (index == -1)
+			{
+				throw new ArgumentException($"Unable to find KDB+ null for character {c}, not recognised",
+					nameof(c));
+			}
+
+			return KNullValues[index];
 		}
 
 		/// <summary>
@@ -403,7 +427,7 @@ namespace kx
 			int t = -c.t(x);
 			if (t == 2 || t > 4)
 			{
-				return x.Equals(NU[t]);
+				return x.Equals(KNullValues[t]);
 			}
 			return false;
 		}
@@ -1329,11 +1353,6 @@ namespace kx
 		private static string i2(int i)
 		{
 			return $"{i:00}";
-		}
-
-		private static object NULL(char c)
-		{
-			return NU[" bg xhijefcspmdznuvt".IndexOf(c)];
 		}
 
 		private static long clampDT(long j)
