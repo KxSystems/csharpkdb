@@ -1546,19 +1546,56 @@ namespace kx
 		/// Represents a KDB+ Date type.
 		/// </summary>
 		[Serializable]
-		public class Date : IComparable
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("csharpsquid", "CA1034: Allow nested class for backwards compatability")]
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("csharpsquid", "CA1716: Allow class name c.Date for backwards compatability")]
+		public class Date : IComparable, IComparable<Date>, IEquatable<Date>
 		{
-			public int i;
-
-			private Date()
-			{
-			}
-
+			/// <summary>
+			/// Initialises a new instance of <see cref="Date"/> using 
+			/// a specified int that respresents the value.
+			/// </summary>
+			/// <param name="x">The value.</param>
 			public Date(int x)
 			{
 				i = x;
 			}
 
+			/// <summary>
+			/// Initialises a new instance of <see cref="Date"/> using 
+			/// a specified long that respresents the value.
+			/// </summary>
+			/// <param name="x">The value.</param>
+			public Date(long x)
+			{
+				i = (x == 0L) ? ni : ((int)(x / 864000000000L) - 730119);
+			}
+
+			/// <summary>
+			/// Initialises a new instance of <see cref="Date"/> using 
+			/// a specified <see cref="DateTime"/> that respresents the value.
+			/// </summary>
+			/// <param name="z">The value.</param>
+			public Date(DateTime z)
+				: this(z.Ticks)
+			{
+			}
+
+			/// <summary>
+			/// Gets or sets the value of this KDB+ Date.
+			/// </summary>
+			public int i
+			{
+				get;
+				set;
+			}
+
+			/// <summary>
+			/// Converts this KDB+ <see cref="Date"/> into an equivalent 
+			/// .NET <see cref="DateTime"/>
+			/// </summary>
+			/// <returns>
+			/// A <see cref="DateTime"/> that is equivalent to the KDB+ Date.
+			/// </returns>
 			public DateTime DateTime()
 			{
 				if (i != -2147483647)
@@ -1572,56 +1609,194 @@ namespace kx
 				return za;
 			}
 
-			public Date(long x)
+			#region Object Overrides
+			/// <inheritdoc />
+			[System.Diagnostics.CodeAnalysis.SuppressMessage("csharpsquid", "S4136: Equals to remain in Object Override and IEquatable<T> region")]
+			public override bool Equals(object obj)
 			{
-				i = ((x == 0L) ? ni : ((int)(x / 864000000000L) - 730119));
+				return Equals(obj as Date);
 			}
 
-			public Date(DateTime z)
-				: this(z.Ticks)
-			{
-			}
-
-			public override string ToString()
-			{
-				if (i != ni)
-				{
-					return DateTime().ToString("d");
-				}
-				return "";
-			}
-
-			public override bool Equals(object o)
-			{
-				if (o == null)
-				{
-					return false;
-				}
-				if (GetType() != o.GetType())
-				{
-					return false;
-				}
-				Date d = (Date)o;
-				return i == d.i;
-			}
-
+			/// <inheritdoc />
 			public override int GetHashCode()
 			{
 				return i;
 			}
 
-			public int CompareTo(object o)
+			/// <inheritdoc />
+			public override string ToString()
 			{
-				if (o == null)
+				if (i != ni)
 				{
-					return 1;
+					return DateTime().ToString("d", System.Globalization.CultureInfo.InvariantCulture);
 				}
-				Date other = o as Date;
-				if (other == null)
+				return string.Empty;
+			}
+			#endregion Object Overrides
+
+			#region IComparable Members
+			/// <inheritdoc />
+			public int CompareTo(object obj)
+			{
+				return CompareTo(obj as Date);
+			}
+			#endregion IComparable Members
+
+			#region IComparable<Date> Members
+			/// <inheritdoc />
+			public int CompareTo(Date other)
+			{
+				if (ReferenceEquals(other, null))
 				{
 					return 1;
 				}
 				return i.CompareTo(other.i);
+			}
+			#endregion IComparable<Date> Members
+
+			#region IEquatable<Date> Members
+			/// <inheritdoc />
+			public virtual bool Equals(Date other)
+			{
+				if (ReferenceEquals(other, null))
+				{
+					return false;
+				}
+				if (ReferenceEquals(other, this))
+				{
+					return true;
+				}
+				return i == other.i;
+			}
+			#endregion IEquatable<Date> Members
+
+			/// <summary>
+			/// Determines whether two specified instances of <see cref="Date"/> are equal.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if instances are equal; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator ==(Date left, Date right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return true;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.Equals(right);
+				}
+				return false;
+			}
+
+			/// <summary>
+			/// Determines whether two specified instances of <see cref="Date"/> are not equal.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if instances are not equal; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator !=(Date left, Date right)
+			{
+				return !(left == right);
+			}
+
+			/// <summary>
+			/// Determines whether one specified <see cref="Date"/> is less than another specified 
+			/// <see cref="Date"/>.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if left instance is less than right instance; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator <(Date left, Date right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return false;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.CompareTo(right) == -1;
+				}
+				return true;
+			}
+
+			/// <summary>
+			/// Determines whether one specified <see cref="Date"/> is greater than another specified 
+			/// <see cref="Date"/>.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if left instance is greater than right instance; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator >(Date left, Date right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return false;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.CompareTo(right) == 1;
+				}
+				return false;
+			}
+
+			/// <summary>
+			/// Determines whether one specified <see cref="Date"/> is less than or equal to 
+			/// another specified 
+			/// <see cref="Date"/>.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if left instance is less than or equal to right instance; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator <=(Date left, Date right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return true;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.CompareTo(right) <= 0;
+				}
+				return true;
+			}
+
+			/// <summary>
+			/// Determines whether one specified <see cref="Date"/> is greater than or equal to 
+			/// another specified 
+			/// <see cref="Date"/>.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if left instance is greater than or equal to right instance; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator >=(Date left, Date right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return true;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.CompareTo(right) >= 0;
+				}
+				return false;
 			}
 		}
 
@@ -1629,61 +1804,221 @@ namespace kx
 		/// Represents a KDB+ Month type.
 		/// </summary>
 		[Serializable]
-		public class Month : IComparable
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("csharpsquid", "CA1034: Allow nested class for backwards compatability")]
+		public class Month : IComparable, IComparable<Month>, IEquatable<Month>
 		{
-			public int i;
-
-			private Month()
-			{
-			}
-
+			/// <summary>
+			/// Initialises a new instance of <see cref="Month"/> using a specified 
+			/// number of months.
+			/// </summary>
+			/// <param name="x">The number of months since Jan 2000.</param>
 			public Month(int x)
 			{
 				i = x;
 			}
 
-			public override string ToString()
+			/// <summary>
+			/// Gets or sets the number of months since Jan 2000
+			/// </summary>
+			/// <remarks>
+			/// Post-millennium is positive and pre is negative.
+			/// </remarks>
+			public int i
 			{
-				int i = 24000 + this.i;
-				int y = i / 12;
-				if (this.i != ni)
-				{
-					return i2(y / 100) + i2(y % 100) + "-" + i2(1 + i % 12);
-				}
-				return "";
+				get;
+				set;
 			}
 
-			public override bool Equals(object o)
+			#region Object Overrides
+			/// <inheritdoc />
+			[System.Diagnostics.CodeAnalysis.SuppressMessage("csharpsquid", "S4136: Equals to remain in Object Override and IEquatable<T> region")]
+			public override bool Equals(object obj)
 			{
-				if (o == null)
-				{
-					return false;
-				}
-				if (GetType() != o.GetType())
-				{
-					return false;
-				}
-				Month i = (Month)o;
-				return this.i == i.i;
+				return Equals(obj as Month);
 			}
 
+			/// <inheritdoc />
 			public override int GetHashCode()
 			{
 				return i;
 			}
 
-			public int CompareTo(object o)
+			/// <inheritdoc />
+			public override string ToString()
 			{
-				if (o == null)
+				int value = 24000 + i;
+				int y = value / 12;
+				if (i != ni)
 				{
-					return 1;
+					return i2(y / 100) + i2(y % 100) + "-" + i2(1 + value % 12);
 				}
-				Month other = o as Month;
-				if (other == null)
+				return "";
+			}
+			#endregion Object Overrides
+
+			#region IComparable Members
+			/// <inheritdoc />
+			public int CompareTo(object obj)
+			{
+				return CompareTo(obj as Month);
+			}
+			#endregion IComparable Members
+
+			#region IComparable<Month> Members
+			/// <inheritdoc />
+			public int CompareTo(Month other)
+			{
+				if (ReferenceEquals(other, null))
 				{
 					return 1;
 				}
 				return i.CompareTo(other.i);
+			}
+			#endregion IComparable<Month> Members
+
+			#region IEquatable<Month> Members
+			/// <inheritdoc />
+			public virtual bool Equals(Month other)
+			{
+				if (ReferenceEquals(other, null))
+				{
+					return false;
+				}
+				if (ReferenceEquals(other, this))
+				{
+					return true;
+				}
+				return other.i == i;
+			}
+			#endregion IEquatable<Month> Members
+
+			/// <summary>
+			/// Determines whether two specified instances of <see cref="Month"/> are equal.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if instances are equal; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator ==(Month left, Month right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return true;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.Equals(right);
+				}
+				return false;
+			}
+
+			/// <summary>
+			/// Determines whether two specified instances of <see cref="Month"/> are not equal.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if instances are not equal; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator !=(Month left, Month right)
+			{
+				return !(left == right);
+			}
+
+			/// <summary>
+			/// Determines whether one specified <see cref="Month"/> is less than another specified 
+			/// <see cref="Month"/>.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if left instance is less than right instance; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator <(Month left, Month right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return false;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.CompareTo(right) == -1;
+				}
+				return true;
+			}
+
+			/// <summary>
+			/// Determines whether one specified <see cref="Month"/> is greater than another specified 
+			/// <see cref="Month"/>.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if left instance is greater than right instance; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator >(Month left, Month right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return false;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.CompareTo(right) == 1;
+				}
+				return false;
+			}
+
+			/// <summary>
+			/// Determines whether one specified <see cref="Month"/> is less than or equal to 
+			/// another specified 
+			/// <see cref="Month"/>.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if left instance is less than or equal to right instance; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator <=(Month left, Month right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return true;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.CompareTo(right) <= 0;
+				}
+				return true;
+			}
+
+			/// <summary>
+			/// Determines whether one specified <see cref="Month"/> is greater than or equal to 
+			/// another specified 
+			/// <see cref="Month"/>.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if left instance is greater than or equal to right instance; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator >=(Month left, Month right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return true;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.CompareTo(right) >= 0;
+				}
+				return false;
 			}
 		}
 
@@ -1691,19 +2026,43 @@ namespace kx
 		/// Represents a KDB+ Minute type.
 		/// </summary>
 		[Serializable]
-		public class Minute : IComparable
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("csharpsquid", "CA1034: Allow nested class for backwards compatability")]
+		public class Minute : IComparable, IComparable<Minute>, IEquatable<Minute>
 		{
-			public int i;
-
-			private Minute()
-			{
-			}
-
+			/// <summary>
+			/// Initialises a new instance of <see cref="Month"/> using a specified 
+			/// number of minutes since midnight.
+			/// </summary>
+			/// <param name="x">Number of minutes since midnight.</param>
 			public Minute(int x)
 			{
 				i = x;
 			}
 
+			/// <summary>
+			/// Gets or sets the number of minutes since midnight.
+			/// </summary>
+			public int i
+			{
+				get;
+				set;
+			}
+
+			#region Object Overrides
+			/// <inheritdoc />
+			[System.Diagnostics.CodeAnalysis.SuppressMessage("csharpsquid", "S4136: Equals to remain in Object Override and IEquatable<T> region")]
+			public override bool Equals(object obj)
+			{
+				return Equals(obj as Minute);
+			}
+
+			/// <inheritdoc />
+			public override int GetHashCode()
+			{
+				return i;
+			}
+
+			/// <inheritdoc />
 			public override string ToString()
 			{
 				if (i != ni)
@@ -1712,38 +2071,169 @@ namespace kx
 				}
 				return "";
 			}
+			#endregion Object Overrides
 
-			public override bool Equals(object o)
+			#region IComparable Members
+			///<inheritdoc />
+			public int CompareTo(object obj)
 			{
-				if (o == null)
-				{
-					return false;
-				}
-				if (GetType() != o.GetType())
-				{
-					return false;
-				}
-				Minute i = (Minute)o;
-				return this.i == i.i;
+				return CompareTo(obj as Minute);
 			}
+			#endregion IComparable Members
 
-			public override int GetHashCode()
+			#region IComparable<Minute> Members
+			///<inheritdoc />
+			public int CompareTo(Minute other)
 			{
-				return i;
-			}
-
-			public int CompareTo(object o)
-			{
-				if (o == null)
-				{
-					return 1;
-				}
-				Minute other = o as Minute;
-				if (other == null)
+				if (ReferenceEquals(other, null))
 				{
 					return 1;
 				}
 				return i.CompareTo(other.i);
+			}
+			#endregion IComparable<Minute> Members
+
+			#region IEquatable<Minute> Members
+			///<inheritdoc />
+			public virtual bool Equals(Minute other)
+			{
+				if (ReferenceEquals(other, null))
+				{
+					return false;
+				}
+				if (ReferenceEquals(other, this))
+				{
+					return true;
+				}
+				return i == other.i;
+			}
+			#endregion IEquatable<Minute> Members
+
+			/// <summary>
+			/// Determines whether two specified instances of <see cref="Minute"/> are equal.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if instances are equal; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator ==(Minute left, Minute right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return true;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.Equals(right);
+				}
+				return false;
+			}
+
+			/// <summary>
+			/// Determines whether two specified instances of <see cref="Minute"/> are not equal.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if instances are not equal; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator !=(Minute left, Minute right)
+			{
+				return !(left == right);
+			}
+
+			/// <summary>
+			/// Determines whether one specified <see cref="Minute"/> is less than another specified 
+			/// <see cref="Minute"/>.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if left instance is less than right instance; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator <(Minute left, Minute right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return false;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.CompareTo(right) == -1;
+				}
+				return true;
+			}
+
+			/// <summary>
+			/// Determines whether one specified <see cref="Minute"/> is greater than another specified 
+			/// <see cref="Minute"/>.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if left instance is greater than right instance; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator >(Minute left, Minute right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return false;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.CompareTo(right) == 1;
+				}
+				return false;
+			}
+
+			/// <summary>
+			/// Determines whether one specified <see cref="Minute"/> is less than or equal to 
+			/// another specified <see cref="Minute"/>.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if left instance is less than or equal to right instance; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator <=(Minute left, Minute right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return true;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.CompareTo(right) <= 0;
+				}
+				return true;
+			}
+
+			/// <summary>
+			/// Determines whether one specified <see cref="Minute"/> is greater than or equal to 
+			/// another specified <see cref="Minute"/>.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if left instance is greater than or equal to right instance; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator >=(Minute left, Minute right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return true;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.CompareTo(right) >= 0;
+				}
+				return false;
 			}
 		}
 
@@ -1751,19 +2241,43 @@ namespace kx
 		/// Represents a KDB+ Second type.
 		/// </summary>
 		[Serializable]
-		public class Second : IComparable
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("csharpsquid", "CA1034: Allow nested class for backwards compatability")]
+		public class Second : IComparable, IComparable<Second>, IEquatable<Second>
 		{
-			public int i;
-
-			private Second()
-			{
-			}
-
+			/// <summary>
+			/// Initialises a new instance of <see cref="Month"/> using a specified 
+			/// number of seconds.
+			/// </summary>
+			/// <param name="x">The number of seconds since midnight.</param>
 			public Second(int x)
 			{
 				i = x;
 			}
 
+			/// <summary>
+			/// Gets or sets the number of seconds since midnight.
+			/// </summary>
+			public int i
+			{
+				get;
+				set;
+			}
+
+			#region Object Overrides
+			///<inheritdoc />
+			[System.Diagnostics.CodeAnalysis.SuppressMessage("csharpsquid", "S4136: Equals to remain in Object Override and IEquatable<T> region")]
+			public override bool Equals(object obj)
+			{
+				return Equals(obj as Second);
+			}
+
+			///<inheritdoc />
+			public override int GetHashCode()
+			{
+				return i;
+			}
+
+			///<inheritdoc />
 			public override string ToString()
 			{
 				if (i != ni)
@@ -1772,38 +2286,169 @@ namespace kx
 				}
 				return "";
 			}
+			#endregion Object Overrides
 
-			public override bool Equals(object o)
+			#region IComparable Members
+			/// <inheritdoc />
+			public int CompareTo(object obj)
 			{
-				if (o == null)
-				{
-					return false;
-				}
-				if (GetType() != o.GetType())
-				{
-					return false;
-				}
-				Second s = (Second)o;
-				return i == s.i;
+				return CompareTo(obj as Second);
 			}
+			#endregion IComparable Members
 
-			public override int GetHashCode()
+			#region IComparable<Second> Members
+			/// <inheritdoc />
+			public int CompareTo(Second other)
 			{
-				return i;
-			}
-
-			public int CompareTo(object o)
-			{
-				if (o == null)
-				{
-					return 1;
-				}
-				Second other = o as Second;
-				if (other == null)
+				if (ReferenceEquals(other, null))
 				{
 					return 1;
 				}
 				return i.CompareTo(other.i);
+			}
+			#endregion IComparable<Second> Members
+
+			#region IEquatable<Second> Members
+			/// <inheritdoc />
+			public virtual bool Equals(Second other)
+			{
+				if (ReferenceEquals(other, null))
+				{
+					return false;
+				}
+				if (ReferenceEquals(other, this))
+				{
+					return true;
+				}
+				return i == other.i;
+			}
+			#endregion IEquatable<Second> Members
+
+			/// <summary>
+			/// Determines whether two specified instances of <see cref="Second"/> are equal.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if instances are equal; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator ==(Second left, Second right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return true;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.Equals(right);
+				}
+				return false;
+			}
+
+			/// <summary>
+			/// Determines whether two specified instances of <see cref="Second"/> are not equal.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if instances are not equal; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator !=(Second left, Second right)
+			{
+				return !(left == right);
+			}
+
+			/// <summary>
+			/// Determines whether one specified <see cref="Second"/> is less than another specified 
+			/// <see cref="Second"/>.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if left instance is less than right instance; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator <(Second left, Second right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return false;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.CompareTo(right) == -1;
+				}
+				return true;
+			}
+
+			/// <summary>
+			/// Determines whether one specified <see cref="Second"/> is greater than another specified 
+			/// <see cref="Second"/>.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if left instance is greater than right instance; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator >(Second left, Second right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return false;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.CompareTo(right) == 1;
+				}
+				return false;
+			}
+
+			/// <summary>
+			/// Determines whether one specified <see cref="Second"/> is less than or equal to 
+			/// another specified <see cref="Second"/>.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if left instance is less than or equal to right instance; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator <=(Second left, Second right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return true;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.CompareTo(right) <= 0;
+				}
+				return true;
+			}
+
+			/// <summary>
+			/// Determines whether one specified <see cref="Second"/> is greater than or equal to 
+			/// another specified <see cref="Second"/>.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if left instance is greater than or equal to right instance; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator >=(Second left, Second right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return true;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.CompareTo(right) >= 0;
+				}
+				return false;
 			}
 		}
 
@@ -1811,19 +2456,43 @@ namespace kx
 		/// Represents a KDB+ TimeSpan type.
 		/// </summary>
 		[Serializable]
-		public class KTimespan : IComparable
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("csharpsquid", "CA1034: Allow nested class for backwards compatability")]
+		public class KTimespan : IComparable, IComparable<KTimespan>, IEquatable<KTimespan>
 		{
-			public TimeSpan t;
-
-			private KTimespan()
-			{
-			}
-
+			/// <summary>
+			/// Initialises a new instance of <see cref="KTimespan"/> using a specified 
+			/// number of nanoseconds.
+			/// </summary>
+			/// <param name="x">Number of nanoseconds since midnight.</param>
 			public KTimespan(long x)
 			{
 				t = new TimeSpan((x == nj) ? nj : (x / 100));
 			}
 
+			/// <summary>
+			/// Gets or sets the .NET <see cref="TimeSpan"/>.
+			/// </summary>
+			public TimeSpan t
+			{
+				get;
+				set;
+			}
+
+			#region Object Overrides
+			/// <inheritdoc />
+			[System.Diagnostics.CodeAnalysis.SuppressMessage("csharpsquid", "S4136: Equals to remain in Object Override and IEquatable<T> region")]
+			public override bool Equals(object obj)
+			{
+				return Equals(obj as KTimespan);
+			}
+
+			/// <inheritdoc />
+			public override int GetHashCode()
+			{
+				return t.GetHashCode();
+			}
+
+			/// <inheritdoc />
 			public override string ToString()
 			{
 				if (!qn(t))
@@ -1832,76 +2501,260 @@ namespace kx
 				}
 				return "";
 			}
+			#endregion Object Overrides
 
-			public override bool Equals(object o)
+			#region IComparable Members
+			/// <inheritdoc />
+			public int CompareTo(object obj)
 			{
-				if (o == null)
-				{
-					return false;
-				}
-				if (GetType() != o.GetType())
-				{
-					return false;
-				}
-				KTimespan i = (KTimespan)o;
-				return t.Ticks == i.t.Ticks;
+				return CompareTo(obj as KTimespan);
 			}
+			#endregion IComparable Members
 
-			public override int GetHashCode()
+			#region IComparable<KTimespan> Members
+			/// <inheritdoc />
+			public int CompareTo(KTimespan other)
 			{
-				return t.GetHashCode();
-			}
-
-			public int CompareTo(object o)
-			{
-				if (o == null)
-				{
-					return 1;
-				}
-				KTimespan other = o as KTimespan;
-				if (other == null)
+				if (ReferenceEquals(other, null))
 				{
 					return 1;
 				}
 				return t.CompareTo(other.t);
+			}
+			#endregion IComparable<KTimespan> Members
+
+			#region IEquatable<KTimespan> Members
+			///<inheritdoc />
+			public virtual bool Equals(KTimespan other)
+			{
+				if (ReferenceEquals(other, null))
+				{
+					return false;
+				}
+				if (ReferenceEquals(other, this))
+				{
+					return true;
+				}
+				return t.Ticks == other.t.Ticks;
+			}
+			#endregion IEquatable<KTimespan> Members
+
+			/// <summary>
+			/// Determines whether two specified instances of <see cref="KTimespan"/> are equal.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if instances are equal; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator ==(KTimespan left, KTimespan right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return true;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.Equals(right);
+				}
+				return false;
+			}
+
+			/// <summary>
+			/// Determines whether two specified instances of <see cref="KTimespan"/> are not equal.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if instances are not equal; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator !=(KTimespan left, KTimespan right)
+			{
+				return !(left == right);
+			}
+
+			/// <summary>
+			/// Determines whether one specified <see cref="KTimespan"/> is less than another specified 
+			/// <see cref="KTimespan"/>.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if left instance is less than right instance; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator <(KTimespan left, KTimespan right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return false;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.CompareTo(right) == -1;
+				}
+				return true;
+			}
+
+			/// <summary>
+			/// Determines whether one specified <see cref="KTimespan"/> is greater than another specified 
+			/// <see cref="KTimespan"/>.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if left instance is greater than right instance; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator >(KTimespan left, KTimespan right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return false;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.CompareTo(right) == 1;
+				}
+				return false;
+			}
+
+			/// <summary>
+			/// Determines whether one specified <see cref="KTimespan"/> is less than or equal to 
+			/// another specified <see cref="KTimespan"/>.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if left instance is less than or equal to right instance; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator <=(KTimespan left, KTimespan right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return true;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.CompareTo(right) <= 0;
+				}
+				return true;
+			}
+
+			/// <summary>
+			/// Determines whether one specified <see cref="KTimespan"/> is greater than or equal to 
+			/// another specified <see cref="KTimespan"/>.
+			/// </summary>
+			/// <param name="left">The first instance.</param>
+			/// <param name="right">The second instance.</param>
+			/// <returns>
+			/// <c>true</c> if left instance is greater than or equal to right instance; otherwise <c>false</c>.
+			/// </returns>
+			public static bool operator >=(KTimespan left, KTimespan right)
+			{
+				if (ReferenceEquals(left, null) &&
+					ReferenceEquals(right, null))
+				{
+					return true;
+				}
+				if (!ReferenceEquals(left, null))
+				{
+					return left.CompareTo(right) >= 0;
+				}
+				return false;
 			}
 		}
 
 		/// <summary>
 		/// Represents a KDB+ dictionary type.
 		/// </summary>
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("csharpsquid", "CA1034: Allow nested class for backwards compatability")]
 		public class Dict
 		{
-			public object x;
-
-			public object y;
-
+			/// <summary>
+			/// Initialises a new instance of <see cref="Dict"/>
+			/// </summary>
+			/// <param name="X">Keys to store. Should be an array type when using multiple values.</param>
+			/// <param name="Y">
+			/// Values to store. Index of each value should match the corresponding associated key.
+			/// Should be an array type when using multiple values.
+			/// </param>
+			/// <exception cref="ArgumentNullException"><paramref name="X"/> or <paramref name="Y"/> was null.</exception>
 			public Dict(object X, object Y)
 			{
+				if (X == null)
+				{
+					throw new ArgumentNullException(nameof(X));
+				}
+
+				if (Y == null)
+				{
+					throw new ArgumentNullException(nameof(Y));
+				}
+
 				x = X;
 				y = Y;
 			}
+
+			/// <summary>
+			/// Gets or sets the <see cref="Dict"/> keys.
+			/// </summary>
+			public object x { get; set; }
+
+			/// <summary>
+			/// Gets or sets the <see cref="Dict"/> values.
+			/// </summary>
+			public object y { get; set; }
 		}
 
 		/// <summary>
 		/// Represents a KDB+ table type.
 		/// </summary>
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("csharpsquid", "CA1034: Allow nested class for backwards compatability")]
 		public class Flip
 		{
-			public string[] x;
-
-			public object[] y;
-
+			/// <summary>
+			/// Initialises a new instance of <see cref="c.Flip"/> using a specified 
+			/// <see cref="c.Dict"/>.
+			/// </summary>
+			/// <param name="X">The <see cref="c.Dict"/>.</param>
+			/// <exception cref="ArgumentNullException"><paramref name="X"/> was null.</exception>
 			public Flip(Dict X)
 			{
+				if (X == null)
+				{
+					throw new ArgumentNullException(nameof(X));
+				}
+
 				x = (string[])X.x;
 				y = (object[])X.y;
 			}
 
+			/// <summary>
+			/// Gets or sets the array of column names
+			/// </summary>
+			public string[] x { get; set; }
+
+			/// <summary>
+			/// Gets or sets the array of column values.
+			/// </summary>
+			public object[] y { get; set; }
+
+			/// <summary>
+			/// Gets the column values given the column name.
+			/// </summary>
+			/// <param name="s">The column name.</param>
+			/// <returns>
+			/// The value(s) associated with the column name which can be casted to an array of objects.
+			/// </returns>
+			/// <exception cref="IndexOutOfRangeException"><paramref name="s"/> column name was not found.</exception>
 			public object at(string s)
 			{
-				return y[find(x, s)];
+				return y[Array.IndexOf(x, s)];
 			}
 		}
+
 	}
 }
