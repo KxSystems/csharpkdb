@@ -121,58 +121,58 @@ namespace kx
 			15
 		};
 
+
 		/// <summary>
-		/// Initialises a new instance of <see cref="c"/> with a specified host and port 
+		/// Initialises a new instance of <see cref="c" /> with a specified host and port 
 		/// to connect to.
 		/// </summary>
 		/// <param name="host">The host to connect to.</param>
 		/// <param name="port">The port to connect to.</param>
+		/// <exception cref="ArgumentNullException"><paramref name="host" /> was null.</exception>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="port" /> must be between <see cref="System.Net.IPEndPoint.MinPort" /> and <see cref="System.Net.IPEndPoint.MaxPort" /></exception>
 		/// <exception cref="KException">Unable to connect to KDB+ process, access denied or process unavailable.</exception>
-		public c(string host, int port)
+		public c(string host,
+			int port)
 			: this(host, port, Environment.UserName)
 		{
 		}
 
 		/// <summary>
-		/// Initialises a new instance of <see cref="c"/> with a specified host and port 
-		/// to connect to and a username/password for authentication.
+		/// Initialises a new instance of <see cref="c" /> with a specified host and port 
+		/// to connect to, a username/password for authentication, an optional maximum buffersize and
+		/// an optional flag indicating whether to use TLS.
 		/// </summary>
 		/// <param name="host">The host to connect to.</param>
 		/// <param name="port">The port to connect to.</param>
 		/// <param name="userPassword">The username and passsword, as "username:password" for remote authorisation.</param>
+		/// <param name="maxBufferSize">The maximum buffer size, default is 65536.</param>
+		/// <param name="useTLS">A boolean flag indicating whether or not TLS authentication is enabled, default is false.</param>
+		/// <exception cref="ArgumentNullException"><paramref name="host" /> or <paramref name="userPassword" /> was null.</exception>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="port" /> must be between <see cref="System.Net.IPEndPoint.MinPort" /> and <see cref="System.Net.IPEndPoint.MaxPort" /></exception>
 		/// <exception cref="KException">Unable to connect to KDB+ process, access denied or process unavailable.</exception>
-		public c(string host, int port, string userPassword)
-			: this(host, port, userPassword, DefaultMaxBufferSize)
+		public c(string host,
+			int port,
+			string userPassword,
+			int maxBufferSize = DefaultMaxBufferSize,
+			bool useTLS = false)
 		{
-		}
+			if (host == null)
+			{
+				throw new ArgumentNullException(nameof(host),
+					$"Unable to initialise c. {nameof(host)} parameter cannot be null");
+			}
+			if (port < 0 ||
+				port > 65535)
+			{
+				throw new ArgumentOutOfRangeException(nameof(port),
+					$"Unable to initialise c. {nameof(port)} parameter must be between MinPort and MaxPort");
+			}
+			if (userPassword == null)
+			{
+				throw new ArgumentNullException(nameof(userPassword),
+					$"Unable to initialise c. {nameof(userPassword)} parameter cannot be null");
+			}
 
-		/// <summary>
-		/// Initialises a new instance of <see cref="c"/> with a specified host and port 
-		/// to connect to, a username/password for authentication and a maximum buffersize.
-		/// </summary>
-		/// <param name="host">The host to connect to.</param>
-		/// <param name="port">The port to connect to.</param>
-		/// <param name="userPassword">The username and passsword, as "username:password" for remote authorisation.</param>
-		/// <param name="maxBufferSize">The maximum buffer size.</param>
-		/// <exception cref="KException">Unable to connect to KDB+ process, access denied or process unavailable.</exception>
-		public c(string host, int port, string userPassword, int maxBufferSize)
-			: this(host, port, userPassword, maxBufferSize, false)
-		{
-		}
-
-		/// <summary>
-		/// Initialises a new instance of <see cref="c"/> with a specified host and port 
-		/// to connect to, a username/password for authentication, a maximum buffersize and
-		/// a flag indicating whether to use TLS.
-		/// </summary>
-		/// <param name="host">The host to connect to.</param>
-		/// <param name="port">The port to connect to.</param>
-		/// <param name="userPassword">The username and passsword, as "username:password" for remote authorisation.</param>
-		/// <param name="maxBufferSize">The maximum buffer size.</param>
-		/// <param name="useTLS">A boolean flag indicating whether or not TLS authentication is enabled.</param>
-		/// <exception cref="KException">Unable to connect to KDB+ process, access denied or process unavailable.</exception>
-		public c(string host, int port, string userPassword, int maxBufferSize, bool useTLS)
-		{
 			_maxBufferSize = maxBufferSize;
 			Connect(host, port);
 			s = GetStream();
@@ -185,7 +185,7 @@ namespace kx
 			J = 0;
 			w(userPassword + "\u0003");
 			s.Write(B, 0, J);
-			if (1 != s.Read(B, 0, 1))
+			if (s.Read(B, 0, 1) != 1)
 			{
 				throw new KException("access");
 			}
