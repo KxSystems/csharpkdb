@@ -1333,23 +1333,6 @@ namespace kx
 			return e.GetBytes(s.Substring(0, j)).Length;
 		}
 
-		private static TimeSpan t()
-		{
-			return DateTime.Now.TimeOfDay;
-		}
-
-		private static void tm()
-		{
-			TimeSpan u = v;
-			v = t();
-			O(v - u);
-		}
-
-		private static void O(object x)
-		{
-			Console.WriteLine(x);
-		}
-
 		private static string i2(int i)
 		{
 			return $"{i:00}";
@@ -1358,15 +1341,6 @@ namespace kx
 		private static long clampDT(long j)
 		{
 			return Math.Min(Math.Max(j, za.Ticks), zw.Ticks);
-		}
-
-		private static int find(string[] x, string y)
-		{
-			int i;
-			for (i = 0; i < x.Length && !x[i].Equals(y); i++)
-			{
-			}
-			return i;
 		}
 
 		private static int t(object x)
