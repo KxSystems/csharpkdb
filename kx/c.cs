@@ -193,6 +193,31 @@ namespace kx
 		}
 
 		/// <summary>
+		/// Initialises a new instance of <see cref="c"/>
+		/// </summary>
+		/// <remarks>
+		/// Parameterless constructor intended for unit-testing only, keep internal.
+		/// </remarks>
+		internal c()
+			: this(3)
+		{
+		}
+
+		/// <summary>
+		/// Initialises a new instance of <see cref="c"/> with a specified
+		/// KDB+ version number.
+		/// </summary>
+		/// <param name="versionNumber">The KDB+ version number to use for testing.</param>
+		/// <remarks>
+		/// Test constructor intended for unit-testing only, keep internal.
+		/// </remarks>
+		internal c(int versionNumber)
+		{
+			vt = versionNumber;
+		}
+
+
+		/// <summary>
 		/// Disposes this <see cref="kx.c"/> instance and requests that the underlying
 		/// stream and TCP connection be closed.
 		/// </summary>
@@ -369,6 +394,77 @@ namespace kx
 			};
 
 			w(0, array);
+		}
+
+		/// <summary>
+		/// Serialises a specified object as a byte-array
+		/// </summary>
+		/// <param name="messageType">The type of object to be serialised.</param>
+		/// <param name="x">The object to be serialised.</param>
+		/// <returns>
+		/// A byte-array containing the serialised object data.
+		/// </returns>
+		/// <exception cref="ArgumentNullException"><paramref name="x"/> parameter was null.</exception>
+		public byte[] Serialize(int messageType, object x)
+		{
+			if (x == null)
+			{
+				throw new ArgumentNullException(nameof(x),
+					$"Unable to serialize data. {nameof(x)} parameter cannot be null");
+			}
+
+			int length = nx(x) + 8;
+			B = new byte[length];
+			B[0] = 1;
+			B[1] = (byte)messageType;
+			J = 4;
+			w(length);
+			w(x);
+
+			return B;
+		}
+
+		/// <summary>
+		/// Deserialises a specified byte-array to an object.
+		/// </summary>
+		/// <param name="buffer">The byte-array to be deserialised.</param>
+		/// <returns>
+		/// The deserialised object.
+		/// </returns>
+		/// <exception cref="ArgumentNullException"><paramref name="buffer"/> parameter was null.</exception>
+		/// <exception cref="KException">Error occurred during de-serialisation.</exception>
+		public object Deserialize(byte[] buffer)
+		{
+			if (buffer == null)
+			{
+				throw new ArgumentNullException(nameof(buffer),
+					$"Unable to deserialize data. {nameof(buffer)} parameter cannot be null");
+			}
+
+			b = buffer;
+			a = b[0] == 1;
+
+			bool isCompressed = b[2] == 1;
+
+			int responseLength = buffer.Length - 8;
+			b = new byte[responseLength];
+
+			Array.Copy(buffer, 8, b, 0, responseLength);
+
+			if (isCompressed)
+			{
+				u();
+			}
+			else
+			{
+				j = 0;
+			}
+			if (b[0] == 128)
+			{
+				j = 1;
+				throw new KException(rs());
+			}
+			return r();
 		}
 
 		/// <summary>
@@ -1461,10 +1557,28 @@ namespace kx
 			{
 				return 12;
 			}
+			if (x is Month[])
+			{
+				return 13;
+			}
+			if (x is Date[])
+			{
+				return 14;
+			}
+
 			if (x is KTimespan[])
 			{
 				return 16;
 			}
+			if (x is Minute[])
+			{
+				return 17;
+			}
+			if (x is Second[])
+			{
+				return 18;
+			}
+
 			if (x is TimeSpan[])
 			{
 				return 19;
