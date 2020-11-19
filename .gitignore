@@ -5,3 +5,4 @@
 coverage.xml
 CodeCoverage/*
 */TestResults/*
+*coverage.opencover.xml*
