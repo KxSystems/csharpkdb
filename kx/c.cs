@@ -18,33 +18,17 @@ namespace kx
 	{
 		private const int DefaultMaxBufferSize = 65536;
 
-		private readonly int _maxBufferSize;
+		private const long Year2000Ticks = 630822816000000000L;
 
-		public static Encoding e = Encoding.ASCII;
+		private const int KMinInt32 = int.MinValue;
 
-		private byte[] b;
+		private const long KMinInt64 = long.MinValue;
 
-		private byte[] B;
+		private const double NullDouble = double.NaN;
 
-		private int j;
+		private static readonly DateTime KMinDateTime = DateTime.MinValue.AddTicks(1L);
 
-		private int J;
-
-		private int vt;
-
-		private bool a;
-
-		private Stream s;
-
-		private static TimeSpan v;
-
-		private static int ni = int.MinValue;
-
-		private static long nj = long.MinValue;
-
-		private static long o = 630822816000000000L;
-
-		private static double nf = double.NaN;
+		private static readonly DateTime KMaxDateTime = DateTime.MaxValue;
 
 		private static object[] KNullValues = new object[20]
 		{
@@ -54,30 +38,26 @@ namespace kx
 			null,
 			(byte)0,
 			short.MinValue,
-			ni,
-			nj,
-			(float)nf,
-			nf,
+			KMinInt32,
+			KMinInt64,
+			(float)NullDouble,
+			NullDouble,
 			' ',
 			"",
 			new DateTime(0L),
-			new Month(ni),
-			new Date(ni),
+			new Month(KMinInt32),
+			new Date(KMinInt32),
 			new DateTime(0L),
-			new KTimespan(nj),
-			new Minute(ni),
-			new Second(ni),
-			new TimeSpan(nj)
+			new KTimespan(KMinInt64),
+			new Minute(KMinInt32),
+			new Second(KMinInt32),
+			new TimeSpan(KMinInt64)
 		};
 
 		private static readonly char[] KNullCharIds = " bg xhijefcspmdznuvt"
 			.ToCharArray();
 
-		private static DateTime za = DateTime.MinValue.AddTicks(1L);
-
-		private static DateTime zw = DateTime.MaxValue;
-
-		private static int[] nt = new int[20]
+		private static readonly int[] NumberOfBytesForType = new int[20]
 		{
 			0,
 			1,
@@ -101,7 +81,16 @@ namespace kx
 			4
 		};
 
-		private byte[] gip = new byte[16]
+		private readonly Stream _clientStream;
+
+		private readonly int _maxBufferSize;
+
+		private readonly int _versionNumber;
+
+		/// <summary>
+		/// Used to convert a .NET <see cref="Guid"/> into a KDB+ compatible id.
+		/// </summary>
+		private readonly byte[] _guidInterProcess = new byte[16]
 		{
 			3,
 			2,
@@ -121,6 +110,30 @@ namespace kx
 			15
 		};
 
+		/// <summary>
+		/// The buffer used to store the incoming message bytes from the remote prior to de-serialization.
+		/// </summary>
+		private byte[] _readBuffer;
+
+		/// <summary>
+		/// The buffer used to store the outgoing message bytes when serializing an object.
+		/// </summary>
+		private byte[] _writeBuffer;
+
+		/// <summary>
+		/// The current position of the de-serializer within the read buffer.
+		/// </summary>
+		private int _readPosition;
+
+		/// <summary>
+		/// The current position of the serialiser within the write buffer.
+		/// </summary>
+		private int _writePosition;
+
+		/// <summary>
+		/// A boolean flag indicating the Endianness of a message.
+		/// </summary>
+		private bool _isLittleEndian;
 
 		/// <summary>
 		/// Initialises a new instance of <see cref="c" /> with a specified host and port 
@@ -175,21 +188,21 @@ namespace kx
 
 			_maxBufferSize = maxBufferSize;
 			Connect(host, port);
-			s = GetStream();
+			_clientStream = GetStream();
 			if (useTLS)
 			{
-				s = new SslStream(s, false);
-				((SslStream)s).AuthenticateAsClient(host);
+				_clientStream = new SslStream(_clientStream, false);
+				((SslStream)_clientStream).AuthenticateAsClient(host);
 			}
-			B = new byte[2 + userPassword.Length];
-			J = 0;
+			_writeBuffer = new byte[2 + userPassword.Length];
+			_writePosition = 0;
 			w(userPassword + "\u0003");
-			s.Write(B, 0, J);
-			if (s.Read(B, 0, 1) != 1)
+			_clientStream.Write(_writeBuffer, 0, _writePosition);
+			if (_clientStream.Read(_writeBuffer, 0, 1) != 1)
 			{
 				throw new KException("access");
 			}
-			vt = Math.Min(B[0], (byte)3);
+			_versionNumber = Math.Min(_writeBuffer[0], (byte)3);
 		}
 
 		/// <summary>
@@ -213,9 +226,14 @@ namespace kx
 		/// </remarks>
 		internal c(int versionNumber)
 		{
-			vt = versionNumber;
+			_versionNumber = versionNumber;
 		}
 
+		/// <summary>
+		/// Gets or sets character encoding for serialising/deserialising strings, 
+		/// default is <see cref="Encoding.ASCII"/>.
+		/// </summary>
+		public static Encoding e { get; set; } = Encoding.ASCII;
 
 		/// <summary>
 		/// Disposes this <see cref="kx.c"/> instance and requests that the underlying
@@ -223,9 +241,9 @@ namespace kx
 		/// </summary>
 		public new void Close()
 		{
-			if (s != null)
+			if (_clientStream != null)
 			{
-				s.Close();
+				_clientStream.Close();
 			}
 			base.Close();
 		}
@@ -238,22 +256,22 @@ namespace kx
 		/// </returns>
 		public object k()
 		{
-			read(b = new byte[8]);
-			a = (b[0] == 1);
-			bool num = b[2] == 1;
-			j = 4;
-			read(b = new byte[ri() - 8]);
+			read(_readBuffer = new byte[8]);
+			_isLittleEndian = (_readBuffer[0] == 1);
+			bool num = _readBuffer[2] == 1;
+			_readPosition = 4;
+			read(_readBuffer = new byte[ri() - 8]);
 			if (num)
 			{
 				u();
 			}
 			else
 			{
-				j = 0;
+				_readPosition = 0;
 			}
-			if (b[0] == 128)
+			if (_readBuffer[0] == 128)
 			{
-				j = 1;
+				_readPosition = 1;
 				throw new KException(rs());
 			}
 			return r();
@@ -414,14 +432,14 @@ namespace kx
 			}
 
 			int length = nx(x) + 8;
-			B = new byte[length];
-			B[0] = 1;
-			B[1] = (byte)messageType;
-			J = 4;
+			_writeBuffer = new byte[length];
+			_writeBuffer[0] = 1;
+			_writeBuffer[1] = (byte)messageType;
+			_writePosition = 4;
 			w(length);
 			w(x);
 
-			return B;
+			return _writeBuffer;
 		}
 
 		/// <summary>
@@ -441,15 +459,15 @@ namespace kx
 					$"Unable to deserialize data. {nameof(buffer)} parameter cannot be null");
 			}
 
-			b = buffer;
-			a = b[0] == 1;
+			_readBuffer = buffer;
+			_isLittleEndian = _readBuffer[0] == 1;
 
-			bool isCompressed = b[2] == 1;
+			bool isCompressed = _readBuffer[2] == 1;
 
 			int responseLength = buffer.Length - 8;
-			b = new byte[responseLength];
+			_readBuffer = new byte[responseLength];
 
-			Array.Copy(buffer, 8, b, 0, responseLength);
+			Array.Copy(buffer, 8, _readBuffer, 0, responseLength);
 
 			if (isCompressed)
 			{
@@ -457,11 +475,11 @@ namespace kx
 			}
 			else
 			{
-				j = 0;
+				_readPosition = 0;
 			}
-			if (b[0] == 128)
+			if (_readBuffer[0] == 128)
 			{
-				j = 1;
+				_readPosition = 1;
 				throw new KException(rs());
 			}
 			return r();
@@ -610,23 +628,23 @@ namespace kx
 			int s = 8;
 			int p = s;
 			short k = 0;
-			this.j = 0;
+			_readPosition = 0;
 			byte[] dst = new byte[ri()];
-			int d = this.j;
+			int d = _readPosition;
 			int[] aa = new int[256];
 			while (s < dst.Length)
 			{
 				if (k == 0)
 				{
-					f = (0xFF & b[d++]);
+					f = (0xFF & _readBuffer[d++]);
 					k = 1;
 				}
 				if ((f & k) != 0)
 				{
-					r = aa[0xFF & b[d++]];
+					r = aa[0xFF & _readBuffer[d++]];
 					dst[s++] = dst[r++];
 					dst[s++] = dst[r++];
-					j = (0xFF & b[d++]);
+					j = (0xFF & _readBuffer[d++]);
 					for (int i = 0; i < j; i++)
 					{
 						dst[s + i] = dst[r + i];
@@ -634,7 +652,7 @@ namespace kx
 				}
 				else
 				{
-					dst[s++] = b[d++];
+					dst[s++] = _readBuffer[d++];
 				}
 				while (p < s - 1)
 				{
@@ -650,41 +668,41 @@ namespace kx
 					k = 0;
 				}
 			}
-			b = dst;
-			this.j = 8;
+			_readBuffer = dst;
+			_readPosition = 8;
 		}
 
 		private void w(bool x)
 		{
-			B[J++] = (byte)(x ? 1 : 0);
+			_writeBuffer[_writePosition++] = (byte)(x ? 1 : 0);
 		}
 
 		private bool rb()
 		{
-			return 1 == b[j++];
+			return 1 == _readBuffer[_readPosition++];
 		}
 
 		private void w(byte x)
 		{
-			B[J++] = x;
+			_writeBuffer[_writePosition++] = x;
 		}
 
 		private byte rx()
 		{
-			return b[j++];
+			return _readBuffer[_readPosition++];
 		}
 
 		private void w(short h)
 		{
-			B[J++] = (byte)h;
-			B[J++] = (byte)(h >> 8);
+			_writeBuffer[_writePosition++] = (byte)h;
+			_writeBuffer[_writePosition++] = (byte)(h >> 8);
 		}
 
 		private short rh()
 		{
-			int x = b[j++];
-			int y = b[j++];
-			return (short)(a ? ((x & 0xFF) | (y << 8)) : ((x << 8) | (y & 0xFF)));
+			int x = _readBuffer[_readPosition++];
+			int y = _readBuffer[_readPosition++];
+			return (short)(_isLittleEndian ? ((x & 0xFF) | (y << 8)) : ((x << 8) | (y & 0xFF)));
 		}
 
 		private void w(int i)
@@ -697,7 +715,7 @@ namespace kx
 		{
 			int x = rh();
 			int y = rh();
-			if (!a)
+			if (!_isLittleEndian)
 			{
 				return (x << 16) | (y & 0xFFFF);
 			}
@@ -707,24 +725,24 @@ namespace kx
 		private void w(Guid g)
 		{
 			byte[] b = g.ToByteArray();
-			if (vt < 3)
+			if (_versionNumber < 3)
 			{
 				throw new KException("Guid not valid pre kdb+3.0");
 			}
 			for (int i = 0; i < b.Length; i++)
 			{
-				w(b[gip[i]]);
+				w(b[_guidInterProcess[i]]);
 			}
 		}
 
 		private Guid rg()
 		{
-			bool oa = a;
-			a = false;
+			bool oa = _isLittleEndian;
+			_isLittleEndian = false;
 			int j = ri();
 			short h3 = rh();
 			short h2 = rh();
-			a = oa;
+			_isLittleEndian = oa;
 			byte[] b = new byte[8];
 			for (int i = 0; i < 8; i++)
 			{
@@ -743,7 +761,7 @@ namespace kx
 		{
 			int x = ri();
 			int y = ri();
-			if (!a)
+			if (!_isLittleEndian)
 			{
 				return ((long)x << 32) | (y & uint.MaxValue);
 			}
@@ -761,17 +779,17 @@ namespace kx
 
 		private float re()
 		{
-			if (!a)
+			if (!_isLittleEndian)
 			{
-				byte c2 = b[j];
-				b[j] = b[j + 3];
-				b[j + 3] = c2;
-				c2 = b[j + 1];
-				b[j + 1] = b[j + 2];
-				b[j + 2] = c2;
+				byte c2 = _readBuffer[_readPosition];
+				_readBuffer[_readPosition] = _readBuffer[_readPosition + 3];
+				_readBuffer[_readPosition + 3] = c2;
+				c2 = _readBuffer[_readPosition + 1];
+				_readBuffer[_readPosition + 1] = _readBuffer[_readPosition + 2];
+				_readBuffer[_readPosition + 2] = c2;
 			}
-			float result = BitConverter.ToSingle(b, j);
-			j += 4;
+			float result = BitConverter.ToSingle(_readBuffer, _readPosition);
+			_readPosition += 4;
 			return result;
 		}
 
@@ -792,7 +810,7 @@ namespace kx
 
 		private char rc()
 		{
-			return (char)(b[j++] & 0xFF);
+			return (char)(_readBuffer[_readPosition++] & 0xFF);
 		}
 
 		private void w(string s)
@@ -802,18 +820,18 @@ namespace kx
 			{
 				w(i);
 			}
-			B[J++] = 0;
+			_writeBuffer[_writePosition++] = 0;
 		}
 
 		private string rs()
 		{
-			int i = j;
-			while (b[j] != 0)
+			int i = _readPosition;
+			while (_readBuffer[_readPosition] != 0)
 			{
-				j++;
+				_readPosition++;
 			}
-			string @string = e.GetString(b, i, j - i);
-			j++;
+			string @string = e.GetString(_readBuffer, i, _readPosition - i);
+			_readPosition++;
 			return @string;
 		}
 
@@ -859,26 +877,26 @@ namespace kx
 
 		private void w(TimeSpan t)
 		{
-			if (vt < 1)
+			if (_versionNumber < 1)
 			{
 				throw new KException("Timespan not valid pre kdb+2.6");
 			}
-			w((int)(qn(t) ? ni : (t.Ticks / 10000)));
+			w((int)(qn(t) ? KMinInt32 : (t.Ticks / 10000)));
 		}
 
 		private TimeSpan rt()
 		{
 			int i = ri();
-			return new TimeSpan(qn(i) ? nj : (10000L * (long)i));
+			return new TimeSpan(qn(i) ? KMinInt64 : (10000L * (long)i));
 		}
 
 		private void w(DateTime p)
 		{
-			if (vt < 1)
+			if (_versionNumber < 1)
 			{
 				throw new KException("Timestamp not valid pre kdb+2.6");
 			}
-			w(qn(p) ? nj : (100 * (p.Ticks - o)));
+			w(qn(p) ? KMinInt64 : (100 * (p.Ticks - Year2000Ticks)));
 		}
 
 		private DateTime rz()
@@ -886,18 +904,18 @@ namespace kx
 			double f = rf();
 			if (!double.IsInfinity(f))
 			{
-				return new DateTime(qn(f) ? 0 : clampDT(10000 * (long)Math.Round(86400000.0 * f) + o));
+				return new DateTime(qn(f) ? 0 : clampDT(10000 * (long)Math.Round(86400000.0 * f) + Year2000Ticks));
 			}
 			if (f >= 0.0)
 			{
-				return zw;
+				return KMaxDateTime;
 			}
-			return za;
+			return KMinDateTime;
 		}
 
 		private void w(KTimespan t)
 		{
-			w(qn(t) ? nj : (t.t.Ticks * 100));
+			w(qn(t) ? KMinInt64 : (t.t.Ticks * 100));
 		}
 
 		private KTimespan rn()
@@ -909,7 +927,7 @@ namespace kx
 		{
 			long i = rj();
 			long d = (i < 0) ? ((i + 1) / 100 - 1) : (i / 100);
-			return new DateTime((i == nj) ? 0 : (o + d));
+			return new DateTime((i == KMinInt64) ? 0 : (Year2000Ticks + d));
 		}
 
 		private void w(object x)
@@ -980,11 +998,11 @@ namespace kx
 				w(r2.y);
 				return;
 			}
-			B[J++] = 0;
+			_writeBuffer[_writePosition++] = 0;
 			if (t == 98)
 			{
 				Flip r = (Flip)x;
-				B[J++] = 99;
+				_writeBuffer[_writePosition++] = 99;
 				w(r.x);
 				w(r.y);
 				return;
@@ -1153,7 +1171,7 @@ namespace kx
 		private object r()
 		{
 			int i = 0;
-			int t = (sbyte)b[this.j++];
+			int t = (sbyte)_readBuffer[_readPosition++];
 			switch (t)
 			{
 				case -1:
@@ -1161,7 +1179,7 @@ namespace kx
 				case -2:
 					return rg();
 				case -4:
-					return b[this.j++];
+					return _readBuffer[_readPosition++];
 				case -5:
 					return rh();
 				case -6:
@@ -1196,7 +1214,7 @@ namespace kx
 					{
 						if (t > 99)
 						{
-							if (t == 101 && b[this.j++] == 0)
+							if (t == 101 && _readBuffer[_readPosition++] == 0)
 							{
 								return null;
 							}
@@ -1206,7 +1224,7 @@ namespace kx
 						{
 							return new Dict(r(), r());
 						}
-						this.j++;
+						_readPosition++;
 						if (t == 98)
 						{
 							return new Flip((Dict)r());
@@ -1246,7 +1264,7 @@ namespace kx
 									byte[] G2 = new byte[j];
 									for (; i < j; i++)
 									{
-										G2[i] = b[this.j++];
+										G2[i] = _readBuffer[_readPosition++];
 									}
 									return G2;
 								}
@@ -1297,8 +1315,8 @@ namespace kx
 								}
 							case 10:
 								{
-									char[] chars = e.GetChars(b, this.j, j);
-									this.j += j;
+									char[] chars = e.GetChars(_readBuffer, _readPosition, j);
+									_readPosition += j;
 									return chars;
 								}
 							case 11:
@@ -1392,13 +1410,13 @@ namespace kx
 		private void w(int i, object x)
 		{
 			int j = nx(x) + 8;
-			B = new byte[j];
-			B[0] = 1;
-			B[1] = (byte)i;
-			J = 4;
+			_writeBuffer = new byte[j];
+			_writeBuffer[0] = 1;
+			_writeBuffer[1] = (byte)i;
+			_writePosition = 4;
 			w(j);
 			w(x);
-			s.Write(B, 0, j);
+			_clientStream.Write(_writeBuffer, 0, j);
 		}
 
 		private void read(byte[] b)
@@ -1410,7 +1428,7 @@ namespace kx
 				if (k < j)
 				{
 					int i;
-					if ((i = s.Read(b, k, Math.Min(_maxBufferSize, j - k))) == 0)
+					if ((i = _clientStream.Read(b, k, Math.Min(_maxBufferSize, j - k))) == 0)
 					{
 						break;
 					}
@@ -1436,7 +1454,7 @@ namespace kx
 
 		private static long clampDT(long j)
 		{
-			return Math.Min(Math.Max(j, za.Ticks), zw.Ticks);
+			return Math.Min(Math.Max(j, KMinDateTime.Ticks), KMaxDateTime.Ticks);
 		}
 
 		private static int t(object x)
@@ -1610,7 +1628,7 @@ namespace kx
 			{
 				if (t != -11)
 				{
-					return 1 + nt[-t];
+					return 1 + NumberOfBytesForType[-t];
 				}
 				return 2 + ns((string)x);
 			}
@@ -1625,7 +1643,7 @@ namespace kx
 			}
 			else
 			{
-				j += i * nt[t];
+				j += i * NumberOfBytesForType[t];
 			}
 			return j;
 		}
@@ -1655,7 +1673,7 @@ namespace kx
 			/// <param name="x">The value.</param>
 			public Date(long x)
 			{
-				i = (x == 0L) ? ni : ((int)(x / 864000000000L) - 730119);
+				i = (x == 0L) ? KMinInt32 : ((int)(x / 864000000000L) - 730119);
 			}
 
 			/// <summary>
@@ -1690,11 +1708,11 @@ namespace kx
 				{
 					if (i != int.MaxValue)
 					{
-						return new DateTime((i == ni) ? 0 : clampDT(864000000000L * i + o));
+						return new DateTime((i == KMinInt32) ? 0 : clampDT(864000000000L * i + Year2000Ticks));
 					}
-					return zw;
+					return KMaxDateTime;
 				}
-				return za;
+				return KMinDateTime;
 			}
 
 			#region Object Overrides
@@ -1714,7 +1732,7 @@ namespace kx
 			/// <inheritdoc />
 			public override string ToString()
 			{
-				if (i != ni)
+				if (i != KMinInt32)
 				{
 					return DateTime().ToString("d", System.Globalization.CultureInfo.InvariantCulture);
 				}
@@ -1936,7 +1954,7 @@ namespace kx
 			{
 				int value = 24000 + i;
 				int y = value / 12;
-				if (i != ni)
+				if (i != KMinInt32)
 				{
 					return i2(y / 100) + i2(y % 100) + "-" + i2(1 + value % 12);
 				}
@@ -2153,7 +2171,7 @@ namespace kx
 			/// <inheritdoc />
 			public override string ToString()
 			{
-				if (i != ni)
+				if (i != KMinInt32)
 				{
 					return i2(i / 60) + ":" + i2(i % 60);
 				}
@@ -2368,7 +2386,7 @@ namespace kx
 			///<inheritdoc />
 			public override string ToString()
 			{
-				if (i != ni)
+				if (i != KMinInt32)
 				{
 					return new Minute(i / 60).ToString() + ":" + i2(i % 60);
 				}
@@ -2554,7 +2572,7 @@ namespace kx
 			/// <param name="x">Number of nanoseconds since midnight.</param>
 			public KTimespan(long x)
 			{
-				t = new TimeSpan((x == nj) ? nj : (x / 100));
+				t = new TimeSpan((x == KMinInt64) ? KMinInt64 : (x / 100));
 			}
 
 			/// <summary>
