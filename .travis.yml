@@ -1,0 +1,11 @@
+language: csharp
+mono: none
+dotnet: 2.0.0
+solution: ./CSharpKdb.sln
+
+install:
+- dotnet restore ./CSharpKdb.sln
+
+script:
+- dotnet build /p:Configuration=Release ./CSharpKdb.sln
+- dotnet test 
