@@ -3,9 +3,15 @@ mono: none
 dotnet: 3.1
 solution: ./CSharpKdb.sln
 
+addons:
+    sonarcloud:
+        organization: "cdoyle-kx"
+
+before_install:
+- bash ./tools/travis-ci-install-sonar.sh
+
 install:
 - dotnet restore ./CSharpKdb.sln
 
 script:
-- dotnet build /p:Configuration=Release ./CSharpKdb.sln
-- dotnet test 
+ - bash ./tools/travis-ci-build.sh

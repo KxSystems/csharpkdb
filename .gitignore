@@ -4,3 +4,4 @@
 *.vs/*
 coverage.xml
 CodeCoverage/*
+*/TestResults/*
