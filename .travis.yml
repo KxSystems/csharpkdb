@@ -10,8 +10,5 @@ addons:
 before_install:
 - bash ./tools/travis-ci-install-sonar.sh
 
-install:
-- dotnet restore ./CSharpKdb.sln
-
 script:
  - bash ./tools/travis-ci-build.sh
