@@ -1,6 +1,7 @@
 #!/bin/sh
 # Only Run SonarScanner if it is not a pull_request
 
+echo "Check if Travis Pull Request"
 echo "$TRAVIS_PULL_REQUEST"
 if ["$TRAVIS_PULL_REQUEST" == "false"]; then
 	echo "Executing MSBuild DLL begin command..."
