@@ -5,7 +5,7 @@ solution: ./CSharpKdb.sln
 
 addons:
     sonarcloud:
-        organization: "cdoyle-kx"
+        organization: "kxsystems"
 
 before_install:
 - bash ./tools/travis-ci-install-sonar.sh
