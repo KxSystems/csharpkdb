@@ -3,7 +3,7 @@
 
 echo "Check if Travis Pull Request"
 echo "$TRAVIS_PULL_REQUEST"
-if ["$TRAVIS_PULL_REQUEST" == "false"]; then
+if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
 	echo "Executing MSBuild DLL begin command..."
 	dotnet ./tools/sonar/SonarScanner.MSBuild.dll begin /o:"kxsystems" /k:"KxSystems_csharpkdb" /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx" /d:sonar.cs.opencover.reportsPaths="*/coverage.opencover.xml" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.verbose=false /d:sonar.login=${SONAR_TOKEN}
 fi
