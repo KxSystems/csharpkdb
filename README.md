@@ -1,5 +1,9 @@
 # C# KDB
 
+[![Travis](https://img.shields.io/travis/com/kxsystems/csharpkdb/main)](https://travis-ci.com/github/KxSystems/csharpkdb) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=KxSystems_csharpkdb&metric=coverage)](https://sonarcloud.io/dashboard?id=KxSystems_csharpkdb) <a href="https://sonarcloud.io/dashboard?id=KxSystems_csharpkdb"><img src="https://sonarcloud.io/images/project_badges/sonarcloud-white.svg" width="125"></a>
+
+# Introduction
+
 The C# KDB library provides functionality for .NET applications to interface with a KDB+ process.
 
 The library is compiled on .NET Standard 2.0 and supports running applications on
