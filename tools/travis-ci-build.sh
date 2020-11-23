@@ -13,7 +13,7 @@ dotnet build /p:Configuration=Release ./CSharpKdb.sln
 echo "Running tests..."
 dotnet test /p:Configuration=Release --no-build ./kx.Test/kx.Test.csproj --logger:trx /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
 
-if ["$TRAVIS_PULL_REQUEST" = "false"]; then
+if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 	echo "Executing MSBuild DLL end command..."
 	dotnet ./tools/sonar/SonarScanner.MSBuild.dll end /d:sonar.login=${SONAR_TOKEN}
 fi
