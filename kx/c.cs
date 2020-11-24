@@ -1757,7 +1757,7 @@ namespace kx
 			/// <inheritdoc />
 			public int CompareTo(Date other)
 			{
-				if (ReferenceEquals(other, null))
+				if (other is null)
 				{
 					return 1;
 				}
@@ -1769,7 +1769,7 @@ namespace kx
 			/// <inheritdoc />
 			public virtual bool Equals(Date other)
 			{
-				if (ReferenceEquals(other, null))
+				if (other is null)
 				{
 					return false;
 				}
@@ -1791,16 +1791,11 @@ namespace kx
 			/// </returns>
 			public static bool operator ==(Date left, Date right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
-					return true;
+					return right is null;
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.Equals(right);
-				}
-				return false;
+				return left.Equals(right);
 			}
 
 			/// <summary>
@@ -1827,16 +1822,11 @@ namespace kx
 			/// </returns>
 			public static bool operator <(Date left, Date right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
-					return false;
+					return !(right is null);
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.CompareTo(right) == -1;
-				}
-				return true;
+				return left.CompareTo(right) == -1;
 			}
 
 			/// <summary>
@@ -1850,16 +1840,11 @@ namespace kx
 			/// </returns>
 			public static bool operator >(Date left, Date right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
 					return false;
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.CompareTo(right) == 1;
-				}
-				return false;
+				return left.CompareTo(right) == 1;
 			}
 
 			/// <summary>
@@ -1874,16 +1859,11 @@ namespace kx
 			/// </returns>
 			public static bool operator <=(Date left, Date right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
 					return true;
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.CompareTo(right) <= 0;
-				}
-				return true;
+				return left.CompareTo(right) <= 0;
 			}
 
 			/// <summary>
@@ -1898,16 +1878,11 @@ namespace kx
 			/// </returns>
 			public static bool operator >=(Date left, Date right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
-					return true;
+					return right is null;
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.CompareTo(right) >= 0;
-				}
-				return false;
+				return left.CompareTo(right) >= 0;
 			}
 		}
 
@@ -1979,7 +1954,7 @@ namespace kx
 			/// <inheritdoc />
 			public int CompareTo(Month other)
 			{
-				if (ReferenceEquals(other, null))
+				if (other is null)
 				{
 					return 1;
 				}
@@ -1991,7 +1966,7 @@ namespace kx
 			/// <inheritdoc />
 			public virtual bool Equals(Month other)
 			{
-				if (ReferenceEquals(other, null))
+				if (other is null)
 				{
 					return false;
 				}
@@ -2013,16 +1988,11 @@ namespace kx
 			/// </returns>
 			public static bool operator ==(Month left, Month right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
-					return true;
+					return right is null;
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.Equals(right);
-				}
-				return false;
+				return left.Equals(right);
 			}
 
 			/// <summary>
@@ -2049,16 +2019,11 @@ namespace kx
 			/// </returns>
 			public static bool operator <(Month left, Month right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
-					return false;
+					return !(right is null);
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.CompareTo(right) == -1;
-				}
-				return true;
+				return left.CompareTo(right) == -1;
 			}
 
 			/// <summary>
@@ -2072,16 +2037,11 @@ namespace kx
 			/// </returns>
 			public static bool operator >(Month left, Month right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
 					return false;
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.CompareTo(right) == 1;
-				}
-				return false;
+				return left.CompareTo(right) == 1;
 			}
 
 			/// <summary>
@@ -2096,16 +2056,11 @@ namespace kx
 			/// </returns>
 			public static bool operator <=(Month left, Month right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
 					return true;
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.CompareTo(right) <= 0;
-				}
-				return true;
+				return left.CompareTo(right) <= 0;
 			}
 
 			/// <summary>
@@ -2120,16 +2075,11 @@ namespace kx
 			/// </returns>
 			public static bool operator >=(Month left, Month right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
-					return true;
+					return right is null;
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.CompareTo(right) >= 0;
-				}
-				return false;
+				return left.CompareTo(right) >= 0;
 			}
 		}
 
@@ -2196,7 +2146,7 @@ namespace kx
 			///<inheritdoc />
 			public int CompareTo(Minute other)
 			{
-				if (ReferenceEquals(other, null))
+				if (other is null)
 				{
 					return 1;
 				}
@@ -2208,7 +2158,7 @@ namespace kx
 			///<inheritdoc />
 			public virtual bool Equals(Minute other)
 			{
-				if (ReferenceEquals(other, null))
+				if (other is null)
 				{
 					return false;
 				}
@@ -2230,16 +2180,11 @@ namespace kx
 			/// </returns>
 			public static bool operator ==(Minute left, Minute right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
-					return true;
+					return right is null;
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.Equals(right);
-				}
-				return false;
+				return left.Equals(right);
 			}
 
 			/// <summary>
@@ -2266,16 +2211,11 @@ namespace kx
 			/// </returns>
 			public static bool operator <(Minute left, Minute right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
-					return false;
+					return !(right is null);
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.CompareTo(right) == -1;
-				}
-				return true;
+				return left.CompareTo(right) == -1;
 			}
 
 			/// <summary>
@@ -2289,16 +2229,11 @@ namespace kx
 			/// </returns>
 			public static bool operator >(Minute left, Minute right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
 					return false;
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.CompareTo(right) == 1;
-				}
-				return false;
+				return left.CompareTo(right) == 1;
 			}
 
 			/// <summary>
@@ -2312,16 +2247,11 @@ namespace kx
 			/// </returns>
 			public static bool operator <=(Minute left, Minute right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
 					return true;
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.CompareTo(right) <= 0;
-				}
-				return true;
+				return left.CompareTo(right) <= 0;
 			}
 
 			/// <summary>
@@ -2335,16 +2265,11 @@ namespace kx
 			/// </returns>
 			public static bool operator >=(Minute left, Minute right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
-					return true;
+					return right is null;
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.CompareTo(right) >= 0;
-				}
-				return false;
+				return left.CompareTo(right) >= 0;
 			}
 		}
 
@@ -2411,7 +2336,7 @@ namespace kx
 			/// <inheritdoc />
 			public int CompareTo(Second other)
 			{
-				if (ReferenceEquals(other, null))
+				if (other is null)
 				{
 					return 1;
 				}
@@ -2423,7 +2348,7 @@ namespace kx
 			/// <inheritdoc />
 			public virtual bool Equals(Second other)
 			{
-				if (ReferenceEquals(other, null))
+				if (other is null)
 				{
 					return false;
 				}
@@ -2445,16 +2370,11 @@ namespace kx
 			/// </returns>
 			public static bool operator ==(Second left, Second right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
-					return true;
+					return right is null;
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.Equals(right);
-				}
-				return false;
+				return left.Equals(right);
 			}
 
 			/// <summary>
@@ -2481,16 +2401,11 @@ namespace kx
 			/// </returns>
 			public static bool operator <(Second left, Second right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
-					return false;
+					return !(right is null);
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.CompareTo(right) == -1;
-				}
-				return true;
+				return left.CompareTo(right) == -1;
 			}
 
 			/// <summary>
@@ -2504,16 +2419,11 @@ namespace kx
 			/// </returns>
 			public static bool operator >(Second left, Second right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
 					return false;
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.CompareTo(right) == 1;
-				}
-				return false;
+				return left.CompareTo(right) == 1;
 			}
 
 			/// <summary>
@@ -2527,16 +2437,11 @@ namespace kx
 			/// </returns>
 			public static bool operator <=(Second left, Second right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
 					return true;
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.CompareTo(right) <= 0;
-				}
-				return true;
+				return left.CompareTo(right) <= 0;
 			}
 
 			/// <summary>
@@ -2550,16 +2455,11 @@ namespace kx
 			/// </returns>
 			public static bool operator >=(Second left, Second right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
-					return true;
+					return right is null;
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.CompareTo(right) >= 0;
-				}
-				return false;
+				return left.CompareTo(right) >= 0;
 			}
 		}
 
@@ -2626,7 +2526,7 @@ namespace kx
 			/// <inheritdoc />
 			public int CompareTo(KTimespan other)
 			{
-				if (ReferenceEquals(other, null))
+				if (other is null)
 				{
 					return 1;
 				}
@@ -2638,7 +2538,7 @@ namespace kx
 			///<inheritdoc />
 			public virtual bool Equals(KTimespan other)
 			{
-				if (ReferenceEquals(other, null))
+				if (other is null)
 				{
 					return false;
 				}
@@ -2660,16 +2560,11 @@ namespace kx
 			/// </returns>
 			public static bool operator ==(KTimespan left, KTimespan right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
-					return true;
+					return right is null;
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.Equals(right);
-				}
-				return false;
+				return left.Equals(right);
 			}
 
 			/// <summary>
@@ -2696,16 +2591,11 @@ namespace kx
 			/// </returns>
 			public static bool operator <(KTimespan left, KTimespan right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
-					return false;
+					return !(right is null);
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.CompareTo(right) == -1;
-				}
-				return true;
+				return left.CompareTo(right) == -1;
 			}
 
 			/// <summary>
@@ -2719,16 +2609,11 @@ namespace kx
 			/// </returns>
 			public static bool operator >(KTimespan left, KTimespan right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
 					return false;
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.CompareTo(right) == 1;
-				}
-				return false;
+				return left.CompareTo(right) == 1;
 			}
 
 			/// <summary>
@@ -2742,16 +2627,11 @@ namespace kx
 			/// </returns>
 			public static bool operator <=(KTimespan left, KTimespan right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
 					return true;
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.CompareTo(right) <= 0;
-				}
-				return true;
+				return left.CompareTo(right) <= 0;
 			}
 
 			/// <summary>
@@ -2765,16 +2645,11 @@ namespace kx
 			/// </returns>
 			public static bool operator >=(KTimespan left, KTimespan right)
 			{
-				if (ReferenceEquals(left, null) &&
-					ReferenceEquals(right, null))
+				if (left is null)
 				{
-					return true;
+					return right is null;
 				}
-				if (!ReferenceEquals(left, null))
-				{
-					return left.CompareTo(right) >= 0;
-				}
-				return false;
+				return left.CompareTo(right) >= 0;
 			}
 		}
 
