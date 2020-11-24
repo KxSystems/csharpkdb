@@ -30,7 +30,7 @@ namespace kx
 
 		private static readonly DateTime KMaxDateTime = DateTime.MaxValue;
 
-		private static object[] KNullValues = new object[20]
+		private static readonly object[] KNullValues = new object[20]
 		{
 			null,
 			false,
@@ -256,11 +256,16 @@ namespace kx
 		/// </returns>
 		public object k()
 		{
-			read(_readBuffer = new byte[8]);
-			_isLittleEndian = (_readBuffer[0] == 1);
+			_readBuffer = new byte[8];
+			read(_readBuffer);
+
+			_isLittleEndian = _readBuffer[0] == 1;
 			bool num = _readBuffer[2] == 1;
 			_readPosition = 4;
-			read(_readBuffer = new byte[ri() - 8]);
+
+			_readBuffer = new byte[ri() - 8];
+			read(_readBuffer);
+
 			if (num)
 			{
 				u();
