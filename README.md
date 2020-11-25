@@ -60,6 +60,30 @@ Example:
 
 ```
 
+## Examples
+
+Supplied with the code is a series of code examples. The following describes each with an example of how to run from command prompt. Note minimum .NET Core SDK and Runtime should be installed.
+
+### QueryResponse
+
+Instructs the remote KDB+ process to execute 'q' code (KDB+ native language) & receives the result. The same principle can be used to execute q functions. Example of a sync request.
+
+Prerequisite:
+
+- a KDB+ server running on port 5001 on your machine i.e. q -p 5001
+
+Run commands:
+``` bat
+  REM Need to ensure nuget dependencies have been loaded
+  dotnet restore .\CSharpKdb.sln 
+
+  REM Build Release version of Demo application
+  dotnet msbuild Demos\QueryResponseDemo\QueryResponseDemo.csproj /p:Configuration="Release"
+
+  REM Run demo application
+  dotnet .\Demos\QueryResponseDemo\bin\Release\netcoreapp3.1\QueryResponseDemo.dll 
+```
+
 ## Change Record
 
 - 2020-11-16 : Issue 2# : Reformat code 
