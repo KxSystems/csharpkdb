@@ -6,3 +6,11 @@ coverage.xml
 CodeCoverage/*
 */TestResults/*
 *coverage.opencover.xml*
+Demos/FeedDemo/bin/*
+Demos/FeedDemo/obj/*
+Demos/QueryResponseDemo/bin/*
+Demos/QueryResponseDemo/obj/*
+Demos/SerializationDemo/bin/*
+Demos/SerializationDemo/obj/*
+Demos/SubscriberDemo/bin/*
+Demos/SubscriberDemo/obj/*

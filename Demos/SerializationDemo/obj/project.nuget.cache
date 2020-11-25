@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "afZDhBvDcsQqdXsKfRccxBjphSEQy7RaIJ1c7Zf63JU4pI6K9MM2xWMqn2AmFtyLP7tPnfviPR6pYQiCFc2vNA==",
+  "success": true,
+  "projectFilePath": "C:\\gitlab\\CSharpKDB_40\\csharpkdb\\Demos\\SerializationDemo\\SerializationDemo.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\cdoyle4\\.nuget\\packages\\nlog\\4.7.5\\nlog.4.7.5.nupkg.sha512"
+  ],
+  "logs": []
+}
