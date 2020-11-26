@@ -60,6 +60,97 @@ Example:
 
 ```
 
+## Examples
+
+Supplied with the code is a series of code examples. The following describes each with an example of how to run from command prompt. Note minimum <a href="https://dotnet.microsoft.com/download">.NET Core SDK and Runtime</a> should be installed.
+
+### QueryResponse Demo
+
+Instructs the remote KDB+ process to execute 'q' code (KDB+ native language) & receives the result. The same principle can be used to execute q functions. Example of a sync request.
+
+Prerequisite:
+
+- a KDB+ server running on port 5001 on your machine i.e. q -p 5001
+
+Run commands:
+``` bat
+  REM Need to ensure nuget dependencies have been loaded
+  dotnet restore .\CSharpKdb.sln 
+
+  REM Build Release version of Demo application
+  dotnet msbuild Demos\QueryResponseDemo\QueryResponseDemo.csproj /p:Configuration="Release"
+
+  REM Run demo application
+  dotnet .\Demos\QueryResponseDemo\bin\Release\netcoreapp3.1\QueryResponseDemo.dll 
+```
+
+### Serialization Demo
+
+Example of code that can be used to serialize/dezerialise a C# type (array of ints) to KDB+ format. 
+
+Prerequisite:
+
+- a KDB+ server running on port 5001 on your machine i.e. q -p 5001
+
+Run commands:
+``` bat
+  REM Need to ensure nuget dependencies have been loaded
+  dotnet restore .\CSharpKdb.sln 
+
+  REM Build Release version of Demo application
+  dotnet msbuild Demos\SerializationDemo\SerializationDemo.csproj /p:Configuration="Release"
+
+  REM Run demo application
+  dotnet .\Demos\SerializationDemo\bin\Release\netcoreapp3.1\SerializationDemo.dll 
+```
+
+### Feed Demo
+
+Example of creating an update function remotely (to capture table inserts), along with table creation and population of the table.
+Table population has an example of single row inserts (lower latency) and bulk inserts (better throughput and resource utilization).
+
+Prerequisite: 
+
+- a KDB+ server running on port 5001 on your machine i.e. q -p 5001. 
+
+- as this example depends on a .u.upd function being defined and a table name 'mytable' pre-existing, you may wish to run the following within the KDB+ server (in normal environments, these table and function definitions should be pre-created by your KDB+ admin). 
+
+  ``
+  q).u.upd:{[tbl;row] insert[tbl](row)}
+  q)mytable:([]time:`timespan$();sym:`symbol$();price:`float$();size:`long$())
+  ``
+
+Run commands:
+``` bat
+  REM Need to ensure nuget dependencies have been loaded
+  dotnet restore .\CSharpKdb.sln 
+
+  REM Build Release version of Demo application
+  dotnet msbuild Demos\FeedDemo\FeedDemo.csproj /p:Configuration="Release"
+
+  REM Run demo application
+  dotnet .\Demos\FeedDemo\bin\Release\netcoreapp3.1\FeedDemo.dll 
+```
+
+### Subscriber Demo
+Example app that subscribes to real-time updates from a table that is maintained in KDB+. 
+
+Prerequisite: 
+
+- a KDB+ server running on port 5001 on your machine. The instance must have the .u.sub function defined. An example of .u.sub can be found in <a href="https://github.com/KxSystems/kdb-tick">KxSystems/kdb-tick</a> which is an example tickerplant. You can execute this tickerplant process by running `q tick.q` (the default port is set to 5001).
+
+Run commands:
+``` bat
+  REM Need to ensure nuget dependencies have been loaded
+  dotnet restore .\CSharpKdb.sln 
+
+  REM Build Release version of Demo application
+  dotnet msbuild Demos\SubscriberDemo\SubscriberDemo.csproj /p:Configuration="Release"
+
+  REM Run demo application
+  dotnet .\Demos\SubscriberDemo\bin\Release\netcoreapp3.1\SubscriberDemo.dll 
+```
+
 ## Change Record
 
 - 2020-11-16 : Issue 2# : Reformat code 
