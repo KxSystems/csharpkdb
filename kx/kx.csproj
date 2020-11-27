@@ -2,6 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+	<Title>CSharpKDB</Title>
+	<PackageId>CSharpKDB</PackageId>
+    <Description>Provides functionality for .NET applications to interface with a KDB+ process.</Description>
+    <Authors>First Derivatives</Authors>
+    <Owners>First Derivatives</Owners>	
+    <Copyright>Copyright © First Derivatives</Copyright>
+    <PackageProjectUrl>https://github.com/KxSystems/csharpkdb</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/KxSystems/csharpkdb</RepositoryUrl>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>kx.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
