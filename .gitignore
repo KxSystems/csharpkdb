@@ -8,3 +8,4 @@ CodeCoverage/*
 *coverage.opencover.xml*
 Demos/*/bin/*
 Demos/*/obj/*
+BenchmarkDotNet.Artifacts/*
