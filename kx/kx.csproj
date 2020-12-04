@@ -18,6 +18,11 @@
       <_Parameter1>kx.Test, PublicKey=0024000004800000940000000602000000240000525341310004000001000100bd7513fb38413667269a66c3c6733bacc8985829183f8dfa03b1d2c6ebc573603ad5a1cee1d0b925a9b4cfc54923f852ca33db2bf0ace4842e8c05b014802192d4057ab58d461bd49d3a71ae310631f47e2222caaa2c7da377656b4953e082a920d4f4585291222ad2cd46ee61b7fafa7062d003844e1ac8ca6d2603ad2792c2</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>kx.Benchmark.Test, PublicKey=0024000004800000940000000602000000240000525341310004000001000100dd2d944d77ec2cffdd50c7a1b4e241a5b69a393753eff2d34ad56e94e8bc7cba4a07f28980e4eff8f258b5f12cbc40589bcf6422f1a7c7e182959a93ee965179ba773a18aacc607e1180ae4bd847f6630b39a3f981c46205344fe523863a5892c2ddf0d672aaf3e9253a53b7ce62e0bae3db9f9e999b981fa2a8467f3f5642ca</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <OutputPath>bin\Release</OutputPath>
