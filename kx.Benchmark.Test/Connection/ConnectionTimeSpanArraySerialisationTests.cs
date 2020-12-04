@@ -30,6 +30,23 @@ namespace kx.Benchmark.Test.Connection
             }
         }
 
+        [Benchmark]
+        public void ConnectionSerialisesAndDeserialisesTimeSpanArrayInputWithZipEnabled()
+        {
+            TimeSpan[] expected = _data;
+
+            using (var connection = new c())
+            {
+                connection.IsZipEnabled = true;
+
+                byte[] serialisedData = connection.Serialize(1, expected);
+
+                TimeSpan[] result = connection.Deserialize(serialisedData) as TimeSpan[];
+
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
         [GlobalSetup]
         public void Setup()
         {
