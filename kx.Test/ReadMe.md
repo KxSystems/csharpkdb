@@ -1,6 +1,6 @@
 # kx.Test
 
-The kx.Test.csproj is test library that leverage the NUnit framework 
+The kx.Test.csproj is a test library that leverages the NUnit framework 
 to run unit-tests.
 
 Developers can run the tests either
