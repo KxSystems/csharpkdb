@@ -15,9 +15,32 @@ See https://dotnet.microsoft.com/platform/dotnet-standard for further details
 
 ## Client integration
 
-### Nuget releases
+### NuGet releases
 
-Latest release version can be downloaded from [nuget](https://www.nuget.org/packages/CSharpKDB/)
+Latest release version can be downloaded from [NuGet](https://www.nuget.org/packages/CSharpKDB/).
+
+Client-applications can search and install "CSharpKDB" package either via 
+
+- [Visual Studio](https://docs.microsoft.com/en-us/nuget/consume-packages/install-use-packages-visual-studio) 
+
+- [Package Manager Console](https://docs.microsoft.com/en-us/nuget/consume-packages/install-use-packages-powershell)
+
+Example
+```powershell
+
+PM> Find-Package CSharpKDB
+
+Id                                  Versions                                 Description                                                                                  
+--                                  --------                                 -----------                                                                                  
+CSharpKDB                                                                    "Provides functionality for .NET applications to interface with a KDB+ process.               "
+Time Elapsed: 00:00:00.8274076
+
+PM> Install-Package CSharpKDB
+Restoring packages for ...
+Installing NuGet package CSharpKDB ....
+```
+
+
 
 ## c.cs
 
