@@ -13,6 +13,12 @@ The library is compiled on .NET Standard 2.0 and supports running applications o
 
 See https://dotnet.microsoft.com/platform/dotnet-standard for further details
 
+## Client integration
+
+### Nuget releases
+
+Latest release version can be downloaded from [nuget](https://www.nuget.org/packages/CSharpKDB/)
+
 ## c.cs
 
 The main entry point for client applications is the kx.c.cs class.
