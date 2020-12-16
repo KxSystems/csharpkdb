@@ -13,6 +13,35 @@ The library is compiled on .NET Standard 2.0 and supports running applications o
 
 See https://dotnet.microsoft.com/platform/dotnet-standard for further details
 
+## Client integration
+
+### NuGet releases
+
+Latest release version can be downloaded from [NuGet](https://www.nuget.org/packages/CSharpKDB/).
+
+Client-applications can search and install "CSharpKDB" package either via 
+
+- [Visual Studio](https://docs.microsoft.com/en-us/nuget/consume-packages/install-use-packages-visual-studio) 
+
+- [Package Manager Console](https://docs.microsoft.com/en-us/nuget/consume-packages/install-use-packages-powershell)
+
+Example
+```powershell
+
+PM> Find-Package CSharpKDB
+
+Id                                  Versions                                 Description                                                                                  
+--                                  --------                                 -----------                                                                                  
+CSharpKDB                                                                    "Provides functionality for .NET applications to interface with a KDB+ process.               "
+Time Elapsed: 00:00:00.8274076
+
+PM> Install-Package CSharpKDB
+Restoring packages for ...
+Installing NuGet package CSharpKDB ....
+```
+
+
+
 ## c.cs
 
 The main entry point for client applications is the kx.c.cs class.
