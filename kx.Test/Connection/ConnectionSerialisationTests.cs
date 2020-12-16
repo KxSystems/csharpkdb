@@ -679,6 +679,315 @@ namespace kx.Test.Connection
             }
         }
 
+        [Test]
+        public void ConnectionSerialisesAndDeserialisesObjectArrayInputWithZipEnabled()
+        {
+            object[] expected = CreateTestArray(i => string.Format("Hello_{0}", i), 2000);
+
+            using (var connection = new c())
+            {
+                connection.IsZipEnabled = true;
+
+                byte[] serialisedData = connection.Serialize(1, expected);
+
+                object[] result = connection.Deserialize(serialisedData) as object[];
+
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
+        [Test]
+        public void ConnectionSerialisesAndDeserialisesBooleanArrayInputWithZipEnabled()
+        {
+            bool[] expected = CreateTestArray(i => i % 2 == 0, 2000);
+
+            using (var connection = new c())
+            {
+                connection.IsZipEnabled = true;
+
+                byte[] serialisedData = connection.Serialize(0, expected);
+
+                bool[] result = connection.Deserialize(serialisedData) as bool[];
+
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
+        [Test]
+        public void ConnectionSerialisesAndDeserialisesGuidArrayInputWithZipEnabled()
+        {
+            Guid[] expected = CreateTestArray(i => Guid.NewGuid(), 2000);
+
+            using (var connection = new c())
+            {
+                connection.IsZipEnabled = true;
+
+                byte[] serialisedData = connection.Serialize(0, expected);
+
+                Guid[] result = connection.Deserialize(serialisedData) as Guid[];
+
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
+        [Test]
+        public void ConnectionSerialisesAndDeserialisesByteArrayInputWithZipEnabled()
+        {
+            byte[] expected = CreateTestArray(i => (byte)i, 2000);
+
+            using (var connection = new c())
+            {
+                connection.IsZipEnabled = true;
+
+                byte[] serialisedData = connection.Serialize(0, expected);
+
+                byte[] result = connection.Deserialize(serialisedData) as byte[];
+
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
+        [Test]
+        public void ConnectionSerialisesAndDeserialisesShortArrayInputWithZipEnabled()
+        {
+            short[] expected = CreateTestArray(i => (short)i, 2000);
+
+            using (var connection = new c())
+            {
+                connection.IsZipEnabled = true;
+
+                byte[] serialisedData = connection.Serialize(0, expected);
+
+                short[] result = connection.Deserialize(serialisedData) as short[];
+
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
+        [Test]
+        public void ConnectionSerialisesAndDeserialisesIntArrayInputWithZipEnabled()
+        {
+            int[] expected = CreateTestArray(i => i, 2000);
+
+            using (var connection = new c())
+            {
+                connection.IsZipEnabled = true;
+
+                byte[] serialisedData = connection.Serialize(0, expected);
+
+                int[] result = connection.Deserialize(serialisedData) as int[];
+
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
+        [Test]
+        public void ConnectionSerialisesAndDeserialisesLongArrayInputWithZipEnabled()
+        {
+            long[] expected = CreateTestArray(i => (long)i, 2000);
+
+            using (var connection = new c())
+            {
+                connection.IsZipEnabled = true;
+
+                byte[] serialisedData = connection.Serialize(0, expected);
+
+                long[] result = connection.Deserialize(serialisedData) as long[];
+
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+        [Test]
+        public void ConnectionSerialisesAndDeserialisesFloatArrayInputWithZipEnabled()
+        {
+            float[] expected = CreateTestArray(i => (float)i / 2, 50);
+
+            using (var connection = new c())
+            {
+                connection.IsZipEnabled = true;
+
+                byte[] serialisedData = connection.Serialize(0, expected);
+
+                float[] result = connection.Deserialize(serialisedData) as float[];
+
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
+        [Test]
+        public void ConnectionSerialisesAndDeserialisesDoubleArrayInputWithZipEnabled()
+        {
+            double[] expected = CreateTestArray(i => (double)i / 2, 2000);
+
+            using (var connection = new c())
+            {
+                connection.IsZipEnabled = true;
+
+                byte[] serialisedData = connection.Serialize(0, expected);
+
+                double[] result = connection.Deserialize(serialisedData) as double[];
+
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
+        [Test]
+        public void ConnectionSerialisesAndDeserialisesCharArrayInputWithZipEnabled()
+        {
+            // char serialisation only supports up to 128
+            char[] expected = CreateTestArray(i =>
+            {
+                return (char)Math.Abs(new Random(i).Next(0, 127));
+            }, 2000);
+
+            using (var connection = new c())
+            {
+                connection.IsZipEnabled = true;
+
+                byte[] serialisedData = connection.Serialize(0, expected);
+
+                char[] result = connection.Deserialize(serialisedData) as char[];
+
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+        [Test]
+        public void ConnectionSerialisesAndDeserialisesStringArrayInputWithZipEnabled()
+        {
+            string[] expected = CreateTestArray(i => string.Format("Hello_{0}", i), 2000);
+
+            using (var connection = new c())
+            {
+                connection.IsZipEnabled = true;
+
+                byte[] serialisedData = connection.Serialize(0, expected);
+
+                string[] result = connection.Deserialize(serialisedData) as string[];
+
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
+        [Test]
+        public void ConnectionSerialisesAndDeserialisesDateTimeArrayInputWithZipEnabled()
+        {
+            DateTime[] expected = CreateTestArray(i => new DateTime(2020, 11, 11, 0, 0, i % 60, DateTimeKind.Utc), 2000);
+
+            using (var connection = new c())
+            {
+                connection.IsZipEnabled = true;
+
+                byte[] serialisedData = connection.Serialize(0, expected);
+
+                DateTime[] result = connection.Deserialize(serialisedData) as DateTime[];
+
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
+        [Test]
+        public void ConnectionSerialisesAndDeserialisesMonthArrayInputWithZipEnabled()
+        {
+            c.Month[] expected = CreateTestArray(i => new c.Month(i), 2000);
+
+            using (var connection = new c())
+            {
+                connection.IsZipEnabled = true;
+
+                byte[] serialisedData = connection.Serialize(0, expected);
+
+                c.Month[] result = connection.Deserialize(serialisedData) as c.Month[];
+
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
+        [Test]
+        public void ConnectionSerialisesAndDeserialisesDateArrayInputWithZipEnabled()
+        {
+            c.Date[] expected = CreateTestArray(i => new c.Date(new DateTime(2020, 11, 11, 0, 0, i % 60, DateTimeKind.Utc)), 2000);
+
+            using (var connection = new c())
+            {
+                connection.IsZipEnabled = true;
+
+                byte[] serialisedData = connection.Serialize(0, expected);
+
+                c.Date[] result = connection.Deserialize(serialisedData) as c.Date[];
+
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
+        [Test]
+        public void ConnectionSerialisesAndDeserialisesKTimeSpanArrayInputWithZipEnabled()
+        {
+            c.KTimespan[] expected = CreateTestArray(i => new c.KTimespan(i * 100), 2000);
+
+            using (var connection = new c())
+            {
+                connection.IsZipEnabled = true;
+
+                byte[] serialisedData = connection.Serialize(0, expected);
+
+                c.KTimespan[] result = connection.Deserialize(serialisedData) as c.KTimespan[];
+
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
+        [Test]
+        public void ConnectionSerialisesAndDeserialisesMinuteArrayInputWithZipEnabled()
+        {
+            c.Minute[] expected = CreateTestArray(i => new c.Minute(i), 2000);
+
+            using (var connection = new c())
+            {
+                connection.IsZipEnabled = true;
+
+                byte[] serialisedData = connection.Serialize(0, expected);
+
+                c.Minute[] result = connection.Deserialize(serialisedData) as c.Minute[];
+
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
+        [Test]
+        public void ConnectionSerialisesAndDeserialisesSecondArrayInputWithZipEnabled()
+        {
+            c.Second[] expected = CreateTestArray(i => new c.Second(i), 2000);
+
+            using (var connection = new c())
+            {
+                connection.IsZipEnabled = true;
+
+                byte[] serialisedData = connection.Serialize(0, expected);
+
+                c.Second[] result = connection.Deserialize(serialisedData) as c.Second[];
+
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
+        [Test]
+        public void ConnectionSerialisesAndDeserialisesTimeSpanArrayInputWithZipEnabled()
+        {
+            TimeSpan[] expected = CreateTestArray(i => new TimeSpan(i * 10000), 2000);
+
+            using (var connection = new c())
+            {
+                connection.IsZipEnabled = true;
+
+                byte[] serialisedData = connection.Serialize(0, expected);
+
+                TimeSpan[] result = connection.Deserialize(serialisedData) as TimeSpan[];
+
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
+
         private T[] CreateTestArray<T>(Func<int, T> elementBuilder, int arraySize)
         {
             T[] array = new T[arraySize];
