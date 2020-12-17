@@ -235,6 +235,36 @@ namespace kx
         }
 
         /// <summary>
+        /// Initialises a new instance of <see cref="c"/> with a specified 
+        /// client-stream.
+        /// </summary>
+        /// <param name="clientStream">The client-stream.</param>
+        /// <remarks>
+        /// Test constructor intended for unit-testing only, keep internal.
+        /// </remarks>
+        internal c(Stream clientStream)
+            :this(clientStream, 3)
+        {
+
+        }
+
+        /// <summary>
+        /// Initialises a new instance of <see cref="c"/> with a specified 
+        /// client-stream and version-number.
+        /// </summary>
+        /// <param name="clientStream">The client-stream.</param>
+        /// <param name="versionNumber">The KDB+ version number to use for testing.</param>
+        /// <remarks>
+        /// Test constructor intended for unit-testing only, keep internal.
+        /// </remarks>
+        internal c(Stream clientStream, int versionNumber)
+        {
+            _clientStream = clientStream;
+            _versionNumber = versionNumber;
+        }
+
+
+        /// <summary>
         /// Gets or sets whether or not the resulting byte array is compressed.
         /// </summary>
         public bool IsCompressed
