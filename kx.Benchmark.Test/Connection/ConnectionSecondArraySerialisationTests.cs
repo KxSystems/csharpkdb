@@ -29,6 +29,23 @@ namespace kx.Benchmark.Test.Connection
             }
         }
 
+        [Benchmark]
+        public void ConnectionSerialisesAndDeserialisesSecondArrayInputWithZipEnabled()
+        {
+            c.Second[] expected = _data;
+
+            using (var connection = new c())
+            {
+                connection.IsZipEnabled = true;
+
+                byte[] serialisedData = connection.Serialize(1, expected);
+
+                c.Second[] result = connection.Deserialize(serialisedData) as c.Second[];
+
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
         [GlobalSetup]
         public void Setup()
         {

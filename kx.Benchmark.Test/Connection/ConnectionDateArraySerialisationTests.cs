@@ -30,6 +30,23 @@ namespace kx.Benchmark.Test.Connection
             }
         }
 
+        [Benchmark]
+        public void ConnectionSerialisesAndDeserialisesDateArrayInputWithZipEnabled()
+        {
+            c.Date[] expected = _data;
+
+            using (var connection = new c())
+            {
+                connection.IsZipEnabled = true;
+
+                byte[] serialisedData = connection.Serialize(1, expected);
+
+                c.Date[] result = connection.Deserialize(serialisedData) as c.Date[];
+
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
         [GlobalSetup]
         public void Setup()
         {
