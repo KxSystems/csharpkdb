@@ -214,11 +214,11 @@ namespace kx
         /// Initialises a new instance of <see cref="c"/>
         /// </summary>
         /// <remarks>
-        /// Parameterless constructor intended for unit-testing only and access to global members.
+        /// Parameterless constructor intended for unit-testing only, keep internal.
         /// </remarks>
-        protected c()
+        internal c()
+            : this(3)
         {
-            _versionNumber = 3;
         }
 
         /// <summary>
@@ -235,105 +235,12 @@ namespace kx
         }
 
         /// <summary>
-        /// Initialises a new instance of <see cref="c"/> with a specified 
-        /// client-stream.
-        /// </summary>
-        /// <param name="clientStream">The client-stream.</param>
-        /// <remarks>
-        /// Test constructor intended for unit-testing only, keep internal.
-        /// </remarks>
-        internal c(Stream clientStream)
-            :this(clientStream, 3)
-        {
-
-        }
-
-        /// <summary>
-        /// Initialises a new instance of <see cref="c"/> with a specified 
-        /// client-stream and version-number.
-        /// </summary>
-        /// <param name="clientStream">The client-stream.</param>
-        /// <param name="versionNumber">The KDB+ version number to use for testing.</param>
-        /// <remarks>
-        /// Test constructor intended for unit-testing only, keep internal.
-        /// </remarks>
-        internal c(Stream clientStream, int versionNumber)
-        {
-            _clientStream = clientStream;
-            _versionNumber = versionNumber;
-        }
-
-
-        /// <summary>
-        /// Gets or sets whether or not the resulting byte array is compressed.
-        /// </summary>
-        public bool IsCompressed
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// Gets or sets whether or not the resulting byte array is sync.
-        /// </summary>
-        public bool IsSync
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// Gets or sets whether or not the resulting byte array is a response.
-        /// </summary>
-        public bool IsResponse
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
         /// Gets or sets whether zip compression is enabled.
         /// </summary>
         public bool IsZipEnabled
         {
             get;
             set;
-        }
-
-        /// <summary>
-        /// Gets the buffer used to store the incoming message bytes from the remote prior 
-        /// to de-serialisation.
-        /// </summary>
-        protected byte[] ReadBuffer
-        {
-            get { return _readBuffer; }
-        }
-
-        /// <summary>
-        /// Gets or sets the current postion of the de-serialiser with the read buffer.
-        /// </summary>
-        /// <exception cref="ArgumentOutOfRangeException">Read-Position cannot be less than zero.</exception>
-        protected int ReadPosition
-        {
-            get { return _readPosition; }
-            set
-            {
-                if (value < 0)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(value),
-                        $"Unable to set Read-Position. Value must be greater than 0 but was {value}");
-                }
-                _readPosition = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets a boolean flag indicating the Endianness of a message;
-        /// <c>true</c> indicates little-Endian, <c>false</c> indicatse big-Endian.
-        /// </summary>
-        protected bool IsLittleEndian
-        {
-            get { return _isLittleEndian; }
         }
 
         /// <summary>
@@ -363,7 +270,29 @@ namespace kx
         /// </returns>
         public object k()
         {
-            k0();
+            _readBuffer = new byte[8];
+            read(_readBuffer);
+
+            _isLittleEndian = _readBuffer[0] == 1;
+            bool num = _readBuffer[2] == 1;
+            _readPosition = 4;
+
+            _readBuffer = new byte[ri() - 8];
+            read(_readBuffer);
+
+            if (num)
+            {
+                UnCompress();
+            }
+            else
+            {
+                _readPosition = 0;
+            }
+            if (_readBuffer[0] == 128)
+            {
+                _readPosition = 1;
+                throw new KException(rs());
+            }
             return r();
         }
 
@@ -460,39 +389,6 @@ namespace kx
         }
 
         /// <summary>
-        /// Waits for an async message and read header.
-        /// </summary>
-        public void k0()
-        {
-            _readBuffer = new byte[8];
-            read(_readBuffer);
-
-            ParseHeader();
-            _readPosition = 4;
-            _readBuffer = new byte[ri() - 8];
-            read(_readBuffer);
-
-            if (IsCompressed)
-            {
-                UnCompress();
-            }
-            else
-            {
-                _readPosition = 0;
-            }
-            ParseException();
-        }
-
-        /// <summary>
-        /// Sends an async message to the remote KDB+ process with a specified object parameter.
-        /// </summary>
-        /// <param name="x">The object parameter.</param>
-        public void ks(object x)
-        {
-            w(0, x);
-        }
-
-        /// <summary>
         /// Sends an async message to the remote KDB+ process with a specified expression.
         /// </summary>
         /// <param name="s">The expression to send.</param>
@@ -535,27 +431,6 @@ namespace kx
             };
 
             w(0, array);
-        }
-
-        /// <summary>
-        /// Sends an async message to the remote KDB+ process with a specified object parameter.
-        /// </summary>
-        /// <param name="x">The object parameter.</param>
-        public void kn(object x)
-        {
-            w(1, x);
-        }
-
-        /// <summary>
-        /// Sends a response message to the remote KDB+ process.
-        /// </summary>
-        /// <param name="x">The response message to send.</param>
-        /// <remarks>
-        /// This should be called only during processing of an incoming sync message.
-        /// </remarks>
-        public void kr(object x)
-        {
-            w(2, x);
         }
 
         /// <summary>
@@ -626,14 +501,16 @@ namespace kx
             }
 
             _readBuffer = buffer;
-            ParseHeader();
+            _isLittleEndian = _readBuffer[0] == 1;
+
+            bool isCompressed = _readBuffer[2] == 1;
 
             int responseLength = buffer.Length - 8;
             _readBuffer = new byte[responseLength];
 
             Array.Copy(buffer, 8, _readBuffer, 0, responseLength);
 
-            if (IsCompressed)
+            if (isCompressed)
             {
                 UnCompress();
             }
@@ -648,53 +525,20 @@ namespace kx
             }
             return r();
         }
-        
-        /// <summary>
-        /// Reads the contents of the incoming message from the client 
-        /// read-buffer.
-        /// </summary>
-        /// <returns>
-        /// The deserialised contents from the read-buffer.
-        /// </returns>
-        protected object ReadObject()
-        {
-            return r();
-        }
-
-        /// <summary>
-        /// Reads an <see cref="int"/> from the client read-buffer.
-        /// </summary>
-        /// <returns>
-        /// A deserialised int from the client read-buffer.
-        /// </returns>
-        protected int ReadInt32()
-        {
-            return ri();
-        }
-
-        /// <summary>
-        /// Writes a specified byte array directly to the underlying client stream.
-        /// </summary>
-        /// <param name="bytes">The byte array to be writtern to the client stream.</param>
-        /// <param name="number">The number of bytes to be written to the client stream.</param>
-        protected void Write(byte[] bytes, int number)
-        {
-            _clientStream.Write(bytes, 0, number);
-        }
 
         /// <summary>
         /// Gets the null object for the specified <see cref="Type"/>.
         /// </summary>
-        /// <param name="type">The .NET type.</param>
+        /// <param name="t">The .NET type.</param>
         /// <returns>
         /// Instance of null object of specified KDB+ type.
         /// </returns>
-        public static object NULL(Type type)
+        public static object NULL(Type t)
         {
             for (int i = 0; i < KNullValues.Length; i++)
             {
                 if (KNullValues[i] != null &&
-                    KNullValues[i].GetType() == type)
+                    t == KNullValues[i].GetType())
                 {
                     return KNullValues[i];
                 }
@@ -703,7 +547,7 @@ namespace kx
         }
 
         /// <summary>
-        /// Gets the null object for the specified <see cref="char"/> id.
+        /// Gest the null object for the specified <see cref="char"/> id.
         /// </summary>
         /// <param name="c">The character id.</param>
         /// <returns>
@@ -815,23 +659,6 @@ namespace kx
                 return r;
             }
             return null;
-        }
-
-        private void ParseHeader()
-        {
-            _isLittleEndian = (_readBuffer[0] == 1);
-            IsCompressed = (_readBuffer[2] == 1);
-            IsSync = (_readBuffer[1] == 1);
-            IsResponse = (_readBuffer[1] == 2);
-        }
-
-        private void ParseException()
-        {
-            if (_readBuffer[0] == 128)
-            {
-                _readPosition = 1;
-                throw new KException(rs());
-            }
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("csharpsquid", "S1121: Keep assignment of p and h for backwards compatability")]
@@ -1703,8 +1530,14 @@ namespace kx
 
         private void w(int i, object x)
         {
-            byte[] buffer = Serialize(i, x);
-            _clientStream.Write(buffer, 0, buffer.Length);
+            int j = nx(x) + 8;
+            _writeBuffer = new byte[j];
+            _writeBuffer[0] = 1;
+            _writeBuffer[1] = (byte)i;
+            _writePosition = 4;
+            w(j);
+            w(x);
+            _clientStream.Write(_writeBuffer, 0, j);
         }
 
         private void read(byte[] b)
@@ -1725,7 +1558,7 @@ namespace kx
                 }
                 return;
             }
-            throw new KException("read");
+            throw new Exception("read");
         }
 
         private static int ns(string s)

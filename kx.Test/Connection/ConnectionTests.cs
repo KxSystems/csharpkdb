@@ -20,7 +20,7 @@ namespace kx.Test.Connection
         [Test]
         public void ConnectionThrowsIfHostIsNull()
         {
-            Assert.Throws<ArgumentNullException>(() => new c(null as string, 8080));
+            Assert.Throws<ArgumentNullException>(() => new c(null, 8080));
         }
 
         [Test]
