@@ -20,7 +20,7 @@ namespace kx.Benchmark.Test.Connection
         {
             c.Date[] expected = _data;
 
-            using (var connection = new c())
+            using (var connection = new c(3))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -35,7 +35,7 @@ namespace kx.Benchmark.Test.Connection
         {
             c.Date[] expected = _data;
 
-            using (var connection = new c())
+            using (var connection = new c(3))
             {
                 connection.IsZipEnabled = true;
 
