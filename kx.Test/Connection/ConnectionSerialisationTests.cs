@@ -9,10 +9,12 @@ namespace kx.Test.Connection
     [TestFixture]
     public class ConnectionSerialisationTests
     {
+        private readonly int _testVersionNumber = 3;
+
         [Test]
         public void ConnectionSerialiseThrowsIfInputIsNull()
         {
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 Assert.Throws<ArgumentNullException>(() => connection.Serialize(1, null));
             }
@@ -48,7 +50,7 @@ namespace kx.Test.Connection
         [Test]
         public void ConnectionDeserialiseThrowsIfBufferIsNull()
         {
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 Assert.Throws<ArgumentNullException>(() => connection.Deserialize(null));
             }
@@ -67,7 +69,7 @@ namespace kx.Test.Connection
             //end of the error message
             buffer.Add(0);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 Assert.Throws<KException>(() => connection.Deserialize(buffer.ToArray()));
             }
@@ -89,7 +91,7 @@ namespace kx.Test.Connection
             //end of the error message
             buffer.Add(0);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 try
                 {
@@ -109,7 +111,7 @@ namespace kx.Test.Connection
         {
             const bool expected = true;
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -124,7 +126,7 @@ namespace kx.Test.Connection
         {
             const bool expected = false;
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -139,7 +141,7 @@ namespace kx.Test.Connection
         {
             Guid expected = Guid.NewGuid();
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -154,7 +156,7 @@ namespace kx.Test.Connection
         {
             const byte expected = 47;
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -169,7 +171,7 @@ namespace kx.Test.Connection
         {
             const short expected = 47;
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -184,7 +186,7 @@ namespace kx.Test.Connection
         {
             const int expected = 47;
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -199,7 +201,7 @@ namespace kx.Test.Connection
         {
             const long expected = 47L;
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -214,7 +216,7 @@ namespace kx.Test.Connection
         {
             const float expected = 47.14F;
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -229,7 +231,7 @@ namespace kx.Test.Connection
         {
             const double expected = 47.14;
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -244,7 +246,7 @@ namespace kx.Test.Connection
         {
             const char expected = 'k';
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -259,7 +261,7 @@ namespace kx.Test.Connection
         {
             const string expected = "Test_Input";
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -274,7 +276,7 @@ namespace kx.Test.Connection
         {
             DateTime expected = new DateTime(2020, 11, 04, 0, 0, 0, DateTimeKind.Utc);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -289,7 +291,7 @@ namespace kx.Test.Connection
         {
             c.Month expected = new c.Month(47);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -304,7 +306,7 @@ namespace kx.Test.Connection
         {
             c.Date expected = new c.Date(47);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -319,7 +321,7 @@ namespace kx.Test.Connection
         {
             c.KTimespan expected = new c.KTimespan(4700);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -334,7 +336,7 @@ namespace kx.Test.Connection
         {
             c.Minute expected = new c.Minute(47);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -349,7 +351,7 @@ namespace kx.Test.Connection
         {
             c.Second expected = new c.Second(47);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -364,7 +366,7 @@ namespace kx.Test.Connection
         {
             TimeSpan expected = new TimeSpan(470000);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -379,7 +381,7 @@ namespace kx.Test.Connection
         {
             c.Dict expected = new c.Dict(new string[] { "Key_1" }, new object[] { "Value_1" });
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -396,7 +398,7 @@ namespace kx.Test.Connection
         {
             c.Flip expected = new c.Flip(new c.Dict(new string[] { "Key_1" }, new object[] { "Value_1" }));
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -413,7 +415,7 @@ namespace kx.Test.Connection
         {
             object[] expected = CreateTestArray(i => string.Format("Hello_{0}", i), 50);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -428,7 +430,7 @@ namespace kx.Test.Connection
         {
             bool[] expected = CreateTestArray(i => i % 2 == 0, 50);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -443,7 +445,7 @@ namespace kx.Test.Connection
         {
             Guid[] expected = CreateTestArray(i => Guid.NewGuid(), 50);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -458,7 +460,7 @@ namespace kx.Test.Connection
         {
             byte[] expected = CreateTestArray(i => (byte)i, 50);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -473,7 +475,7 @@ namespace kx.Test.Connection
         {
             short[] expected = CreateTestArray(i => (short)i, 50);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -488,7 +490,7 @@ namespace kx.Test.Connection
         {
             int[] expected = CreateTestArray(i => i, 50);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -503,7 +505,7 @@ namespace kx.Test.Connection
         {
             long[] expected = CreateTestArray(i => (long)i, 50);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -519,7 +521,7 @@ namespace kx.Test.Connection
         {
             float[] expected = CreateTestArray(i => (float)i / 2, 50);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -534,7 +536,7 @@ namespace kx.Test.Connection
         {
             double[] expected = CreateTestArray(i => (double)i / 2, 50);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -549,7 +551,7 @@ namespace kx.Test.Connection
         {
             char[] expected = CreateTestArray(i => (char)i, 50);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -564,7 +566,7 @@ namespace kx.Test.Connection
         {
             string[] expected = CreateTestArray(i => string.Format("Hello_{0}", i), 50);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -579,7 +581,7 @@ namespace kx.Test.Connection
         {
             DateTime[] expected = CreateTestArray(i => new DateTime(2020, 11, 11, 0, 0, i, DateTimeKind.Utc), 50);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -594,7 +596,7 @@ namespace kx.Test.Connection
         {
             c.Month[] expected = CreateTestArray(i => new c.Month(i), 50);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -609,7 +611,7 @@ namespace kx.Test.Connection
         {
             c.Date[] expected = CreateTestArray(i => new c.Date(new DateTime(2020, 11, 11, 0, 0, i, DateTimeKind.Utc)), 50);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -624,7 +626,7 @@ namespace kx.Test.Connection
         {
             c.KTimespan[] expected = CreateTestArray(i => new c.KTimespan(i * 100), 50);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -639,7 +641,7 @@ namespace kx.Test.Connection
         {
             c.Minute[] expected = CreateTestArray(i => new c.Minute(i), 50);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -654,7 +656,7 @@ namespace kx.Test.Connection
         {
             c.Second[] expected = CreateTestArray(i => new c.Second(i), 50);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -669,7 +671,7 @@ namespace kx.Test.Connection
         {
             TimeSpan[] expected = CreateTestArray(i => new TimeSpan(i * 10000), 50);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 byte[] serialisedData = connection.Serialize(1, expected);
 
@@ -684,7 +686,7 @@ namespace kx.Test.Connection
         {
             object[] expected = CreateTestArray(i => string.Format("Hello_{0}", i), 2000);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 connection.IsZipEnabled = true;
 
@@ -701,7 +703,7 @@ namespace kx.Test.Connection
         {
             bool[] expected = CreateTestArray(i => i % 2 == 0, 2000);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 connection.IsZipEnabled = true;
 
@@ -718,7 +720,7 @@ namespace kx.Test.Connection
         {
             Guid[] expected = CreateTestArray(i => Guid.NewGuid(), 2000);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 connection.IsZipEnabled = true;
 
@@ -735,7 +737,7 @@ namespace kx.Test.Connection
         {
             byte[] expected = CreateTestArray(i => (byte)i, 2000);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 connection.IsZipEnabled = true;
 
@@ -752,7 +754,7 @@ namespace kx.Test.Connection
         {
             short[] expected = CreateTestArray(i => (short)i, 2000);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 connection.IsZipEnabled = true;
 
@@ -769,7 +771,7 @@ namespace kx.Test.Connection
         {
             int[] expected = CreateTestArray(i => i, 2000);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 connection.IsZipEnabled = true;
 
@@ -786,7 +788,7 @@ namespace kx.Test.Connection
         {
             long[] expected = CreateTestArray(i => (long)i, 2000);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 connection.IsZipEnabled = true;
 
@@ -802,7 +804,7 @@ namespace kx.Test.Connection
         {
             float[] expected = CreateTestArray(i => (float)i / 2, 50);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 connection.IsZipEnabled = true;
 
@@ -819,7 +821,7 @@ namespace kx.Test.Connection
         {
             double[] expected = CreateTestArray(i => (double)i / 2, 2000);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 connection.IsZipEnabled = true;
 
@@ -840,7 +842,7 @@ namespace kx.Test.Connection
                 return (char)Math.Abs(new Random(i).Next(0, 127));
             }, 2000);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 connection.IsZipEnabled = true;
 
@@ -856,7 +858,7 @@ namespace kx.Test.Connection
         {
             string[] expected = CreateTestArray(i => string.Format("Hello_{0}", i), 2000);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 connection.IsZipEnabled = true;
 
@@ -873,7 +875,7 @@ namespace kx.Test.Connection
         {
             DateTime[] expected = CreateTestArray(i => new DateTime(2020, 11, 11, 0, 0, i % 60, DateTimeKind.Utc), 2000);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 connection.IsZipEnabled = true;
 
@@ -890,7 +892,7 @@ namespace kx.Test.Connection
         {
             c.Month[] expected = CreateTestArray(i => new c.Month(i), 2000);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 connection.IsZipEnabled = true;
 
@@ -907,7 +909,7 @@ namespace kx.Test.Connection
         {
             c.Date[] expected = CreateTestArray(i => new c.Date(new DateTime(2020, 11, 11, 0, 0, i % 60, DateTimeKind.Utc)), 2000);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 connection.IsZipEnabled = true;
 
@@ -924,7 +926,7 @@ namespace kx.Test.Connection
         {
             c.KTimespan[] expected = CreateTestArray(i => new c.KTimespan(i * 100), 2000);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 connection.IsZipEnabled = true;
 
@@ -941,7 +943,7 @@ namespace kx.Test.Connection
         {
             c.Minute[] expected = CreateTestArray(i => new c.Minute(i), 2000);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 connection.IsZipEnabled = true;
 
@@ -958,7 +960,7 @@ namespace kx.Test.Connection
         {
             c.Second[] expected = CreateTestArray(i => new c.Second(i), 2000);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 connection.IsZipEnabled = true;
 
@@ -975,7 +977,7 @@ namespace kx.Test.Connection
         {
             TimeSpan[] expected = CreateTestArray(i => new TimeSpan(i * 10000), 2000);
 
-            using (var connection = new c())
+            using (var connection = new c(_testVersionNumber))
             {
                 connection.IsZipEnabled = true;
 
