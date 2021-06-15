@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
 
@@ -29,6 +31,24 @@ namespace kx.Test.Connection
         }
 
         [Test]
+        public async Task ConnectionWritesExpectedObjectParameterToClientStreamAsync()
+        {
+            object expected = "param1";
+
+            using (MemoryStream s = new MemoryStream())
+            {
+                using (var connection = new c(s))
+                {
+                    await connection.ksAsync(expected);
+
+                    object result = connection.Deserialize(s.GetBuffer());
+
+                    Assert.AreEqual(expected, result);
+                }
+            }
+        }
+
+        [Test]
         public void ConnectionWritesExpectedStringExpressionToClientStreamAsynchronously()
         {
             const string expected = "test_expression";
@@ -44,6 +64,24 @@ namespace kx.Test.Connection
                 object result = connection.Deserialize(bytesWritten.ToArray());
 
                 Assert.AreEqual(expected, result);
+            }
+        }
+
+        [Test]
+        public async Task ConnectionWritesExpectedStringExpressionToClientStreamAsync()
+        {
+            const string expected = "test_expression";
+
+            using (MemoryStream s = new MemoryStream())
+            {
+                using (var connection = new c(s))
+                {
+                    await connection.ksAsync(expected);
+
+                    object result = connection.Deserialize(s.GetBuffer());
+
+                    Assert.AreEqual(expected, result);
+                }
             }
         }
 
@@ -67,6 +105,28 @@ namespace kx.Test.Connection
                 Assert.AreEqual(2, result.Length);
                 Assert.AreEqual(expression, new string(result[0] as char[]));
                 Assert.AreEqual(parameter1, result[1]);
+            }
+        }
+
+        [Test]
+        public async Task ConnectionWritesExpectedStringExpressionAndParameterToClientStreamAsync()
+        {
+            const string expression = "test_expression";
+            object parameter1 = 1;
+
+            using (MemoryStream s = new MemoryStream())
+            {
+                using (var connection = new c(s))
+                {
+                    await connection.ksAsync(expression, parameter1);
+
+                    object[] result = connection.Deserialize(s.GetBuffer()) as object[];
+
+                    Assert.IsNotNull(result);
+                    Assert.AreEqual(2, result.Length);
+                    Assert.AreEqual(expression, new string(result[0] as char[]));
+                    Assert.AreEqual(parameter1, result[1]);
+                }
             }
         }
 
@@ -95,6 +155,30 @@ namespace kx.Test.Connection
             }
         }
 
+        [Test]
+        public async Task ConnectionWritesExpectedStringExpressionAndParametersToClientStreamAsync()
+        {
+            const string expression = "test_expression";
+            object parameter1 = 1;
+            object parameter2 = 2;
+
+            using (MemoryStream s = new MemoryStream())
+            {
+                using (var connection = new c(s))
+                {
+                    await connection.ksAsync(expression, parameter1, parameter2);
+
+                    object[] result = connection.Deserialize(s.GetBuffer()) as object[];
+
+                    Assert.IsNotNull(result);
+                    Assert.AreEqual(3, result.Length);
+                    Assert.AreEqual(expression, new string(result[0] as char[]));
+                    Assert.AreEqual(parameter1, result[1]);
+                    Assert.AreEqual(parameter2, result[2]);
+                }
+            }
+        }
+
         private Mock<Stream> CreateTestStream(List<byte> bytesWritten)
         {
             Mock<Stream> testStream = new Mock<Stream>();
@@ -110,6 +194,7 @@ namespace kx.Test.Connection
 
                     bytesWritten.AddRange(content);
                 });
+
 
             return testStream;
         }

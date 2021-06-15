@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace kx
 {
@@ -368,6 +369,18 @@ namespace kx
         }
 
         /// <summary>
+        /// Reads an incoming message from the remote KDB+ process async.
+        /// </summary>
+        /// <returns>
+        /// Deserialised response to request.
+        /// </returns>
+        public async Task<object> kAsync()
+        {
+            await k0Async().ConfigureAwait(false);
+            return r();
+        }
+
+        /// <summary>
         /// Sends a sync message request to the remote KDB+ process.
         /// </summary>
         /// <param name="x">The object parameter to send.</param>
@@ -484,6 +497,31 @@ namespace kx
         }
 
         /// <summary>
+        /// Waits for an async message and read header.
+        /// </summary>
+        public async Task k0Async()
+        {
+            _readBuffer = new byte[8];
+            await ReadAsync(_readBuffer).ConfigureAwait(false);
+
+            ParseHeader();
+            _readPosition = 4;
+            _readBuffer = new byte[ri() - 8];
+
+            await ReadAsync(_readBuffer).ConfigureAwait(false);
+
+            if (IsCompressed)
+            {
+                UnCompress();
+            }
+            else
+            {
+                _readPosition = 0;
+            }
+            ParseException();
+        }
+
+        /// <summary>
         /// Sends an async message to the remote KDB+ process with a specified object parameter.
         /// </summary>
         /// <param name="x">The object parameter.</param>
@@ -493,6 +531,14 @@ namespace kx
         }
 
         /// <summary>
+        /// Sends an async message to the remote KDB+ process with a specified object parameter.
+        /// </summary>
+        /// <param name="x">The object parameter.</param>
+        public async Task ksAsync(object x)
+        {
+            await wAsync(0, x).ConfigureAwait(false);
+        }
+        /// <summary>
         /// Sends an async message to the remote KDB+ process with a specified expression.
         /// </summary>
         /// <param name="s">The expression to send.</param>
@@ -501,6 +547,14 @@ namespace kx
             w(0, s.ToCharArray());
         }
 
+        /// <summary>
+        /// Sends an async message to the remote KDB+ process with a specified expression.
+        /// </summary>
+        /// <param name="s">The expression to send.</param>
+        public async Task ksAsync(string s)
+        {
+            await wAsync(0, s.ToCharArray()).ConfigureAwait(false);
+        }
         /// <summary>
         /// Sends an async message to the remote KDB+ process with a specified expression 
         /// and object parameter.
@@ -516,6 +570,23 @@ namespace kx
             };
 
             w(0, array);
+        }
+
+        /// <summary>
+        /// Sends an async message to the remote KDB+ process with a specified expression 
+        /// and object parameter.
+        /// </summary>
+        /// <param name="s">The expression to send.</param>
+        /// <param name="x">The object parameter to send.</param>
+        public async Task ksAsync(string s, object x)
+        {
+            object[] array = new object[]
+            {
+                s.ToCharArray(),
+                x
+            };
+
+            await wAsync(0, array).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -538,6 +609,25 @@ namespace kx
         }
 
         /// <summary>
+        /// Sends an async message to the remote KDB+ process with a specified expression 
+        /// and object parameters.
+        /// </summary>
+        /// <param name="s">The expression to send.</param>
+        /// <param name="x">The first object parameter to send.</param>
+        /// <param name="y">The second object parameter to send.</param>
+        public async Task ksAsync(string s, object x, object y)
+        {
+            object[] array = new object[]
+            {
+                s.ToCharArray(),
+                x,
+                y
+            };
+
+            await wAsync(0, array).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Sends an async message to the remote KDB+ process with a specified object parameter.
         /// </summary>
         /// <param name="x">The object parameter.</param>
@@ -546,6 +636,14 @@ namespace kx
             w(1, x);
         }
 
+        /// <summary>
+        /// Sends an async message to the remote KDB+ process with a specified object parameter.
+        /// </summary>
+        /// <param name="x">The object parameter.</param>
+        public async Task knAsync(object x)
+        {
+            await wAsync(1, x).ConfigureAwait(false);
+        }
         /// <summary>
         /// Sends a response message to the remote KDB+ process.
         /// </summary>
@@ -556,6 +654,18 @@ namespace kx
         public void kr(object x)
         {
             w(2, x);
+        }
+        
+        /// <summary>
+        /// Sends a response message to the remote KDB+ process.
+        /// </summary>
+        /// <param name="x">The response message to send.</param>
+        /// <remarks>
+        /// This should be called only during processing of an incoming sync message.
+        /// </remarks>
+        public async Task krAsync(object x)
+        {
+            await wAsync(2, x).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -680,6 +790,16 @@ namespace kx
         protected void Write(byte[] bytes, int number)
         {
             _clientStream.Write(bytes, 0, number);
+        }
+
+        /// <summary>
+        /// Writes a specified byte array directly to the underlying client stream asynchronous.
+        /// </summary>
+        /// <param name="bytes">The byte array to be writtern to the client stream.</param>
+        /// <param name="number">The number of bytes to be written to the client stream.</param>
+        protected async Task WriteAsync(byte[] bytes, int number)
+        {
+            await _clientStream.WriteAsync(bytes, 0, number).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1707,6 +1827,12 @@ namespace kx
             _clientStream.Write(buffer, 0, buffer.Length);
         }
 
+        private async Task wAsync(int i, object x)
+        {
+            byte[] buffer = Serialize(i, x);
+            await _clientStream.WriteAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+        }
+
         private void read(byte[] b)
         {
             int k = 0;
@@ -1717,6 +1843,27 @@ namespace kx
                 {
                     int i;
                     if ((i = _clientStream.Read(b, k, Math.Min(_maxBufferSize, j - k))) == 0)
+                    {
+                        break;
+                    }
+                    k += i;
+                    continue;
+                }
+                return;
+            }
+            throw new KException("read");
+        }
+
+        private async Task ReadAsync(byte[] b)
+        {
+            int k = 0;
+            int j = b.Length;
+            while (true)
+            {
+                if (k < j)
+                {
+                    int i;
+                    if ((i = await _clientStream.ReadAsync(b, k, Math.Min(_maxBufferSize, j - k)).ConfigureAwait(false)) == 0)
                     {
                         break;
                     }
