@@ -700,22 +700,29 @@ namespace kx
                     $"Unable to serialize data. {nameof(x)} parameter cannot be null");
             }
 
-            int length = nx(x) + 8;
-            _writeBuffer = new byte[length];
-            _writeBuffer[0] = 1;
-            _writeBuffer[1] = (byte)messageType;
-            _writePosition = 4;
-            w(length);
-            w(x);
-
-            if (zip &&
-                _writePosition > 2000 &&
-                !_isLoopback)
+            try
             {
-                Compress();
-            }
+                int length = nx(x) + 8;
+                _writeBuffer = new byte[length];
+                _writeBuffer[0] = 1;
+                _writeBuffer[1] = (byte)messageType;
+                _writePosition = 4;
+                w(length);
+                w(x);
 
-            return _writeBuffer;
+                if (zip &&
+                    _writePosition > 2000 &&
+                    !_isLoopback)
+                {
+                    Compress();
+                }
+
+                return _writeBuffer;
+            }
+            catch (Exception ex)
+            {
+                throw new KException("Error occurred while trying to serialize object.", ex);
+            }
         }
 
         /// <summary>

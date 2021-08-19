@@ -21,6 +21,29 @@ namespace kx.Test.Connection
         }
 
         [Test]
+        public void ConnectionSerialiseThrowsKExceptionWithInnerExceptionIfSerialisationThrowsException()
+        {
+            using (var connection = new c(_testVersionNumber))
+            {
+
+                c.Dict dataRow = new c.Dict(
+                new[]
+                {
+                "sym"
+                },
+                new object[]
+                {
+                new object[] { null },
+                });
+
+                c.Flip f = new c.Flip(dataRow);
+
+                var exception = Assert.Throws<KException>(() => connection.Serialize(1, f));
+                Assert.NotNull(exception.InnerException);
+
+            }
+        }
+        [Test]
         public void ConnectionSerialiseThrowsIfGuidSerialisationIsNotSupported()
         {
             using (var connection = new c(2))
