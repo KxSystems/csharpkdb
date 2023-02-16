@@ -13,6 +13,8 @@ The library is compiled on .NET Standard 2.0 and supports running applications o
 
 See https://dotnet.microsoft.com/platform/dotnet-standard for further details
 
+**Documentation** in :open_file_folder: [`docs`](docs)
+
 ## Client integration
 
 ### NuGet releases
