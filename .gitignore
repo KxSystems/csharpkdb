@@ -9,3 +9,4 @@ CodeCoverage/*
 Demos/*/bin/*
 Demos/*/obj/*
 BenchmarkDotNet.Artifacts/*
+**/.DS_Store
