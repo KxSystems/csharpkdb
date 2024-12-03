@@ -16,6 +16,9 @@ It is important to close the `c` object explicitly, via the `Close` method, when
 
 The class provides a number of other features explored in the following sections.
 
+## Maximum Message Size
+
+The maximum transmissible message size is 2GB due to a limitation with the maximum array size in C\#, therefore [capability 3](https://code.kx.com/q/basics/ipc/#handshake) will be used within the kdb+ handshake.
 
 ## Utility class for q types
 

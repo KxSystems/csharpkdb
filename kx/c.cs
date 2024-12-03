@@ -158,6 +158,8 @@ namespace kx
         /// Initialises a new instance of <see cref="c" /> with a specified host and port 
         /// to connect to, a username/password for authentication, an optional maximum buffersize and
         /// an optional flag indicating whether to use TLS.
+        /// The maximum transmissible message size is 2GB due to a limitation with the maximum array size in C sharp, 
+        /// therefore <a href="https://code.kx.com/q/basics/ipc/#handshake">capability 3</a> will be used within the kdb+ handshake.
         /// </summary>
         /// <param name="host">The host to connect to.</param>
         /// <param name="port">The port to connect to.</param>
