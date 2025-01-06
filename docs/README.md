@@ -49,8 +49,6 @@ object[] twoNullIntegers = {NULL('i'), NULL('i')};
 
 The q null values are mapped to C\# values according to the following table:
 
-<div class="kx-compact" markdown="1">
-
 q type    | q null accessor | C\# null 
 ----------|-------------|----------------------------
 Boolean   | `NULL('b')` | `false`                    
@@ -62,17 +60,15 @@ Long      | `NULL('j')` | `Int64.MinValue`
 Float     | `NULL('e')` | `(Single)Double.NaN`       
 Double    | `NULL('f')` | `Double.NaN`               
 Character | `NULL('c')` | `' '`                      
-String    | `NULL('s')` | `""`                       
-Timestamp | `NULL('p')` | `DateTime(0)`              
-Month     | `NULL('m')` | `Month(Int32.!MinValue)`   
-Date      | `NULL('d')` | `Date(Int32.!MinValue)`    
-DateTime  | `NULL('z')` | `DateTime(0)`              
-TimeSpan  | `NULL('n')` | `TimeSpan(Int32.!MinValue)`
-Minute    | `NULL('u')` | `Minute(Int32.!MinValue)`  
-Second    | `NULL('v')` | `Second(Int32.!MinValue)`  
-Time      | `NULL('t')` | `TimeSpan(Int64.!MinValue)`
-
-</div>
+Symbol    | `NULL('s')` | `""`                       
+Timestamp | `NULL('p')` | `System.DateTime(0)`              
+Month     | `NULL('m')` | `c.Month(Int32.MinValue)`   
+Date      | `NULL('d')` | `c.Date(Int32.MinValue)`    
+DateTime  | `NULL('z')` | `(depreciated in favour of Timestamp)`              
+TimeSpan  | `NULL('n')` | `c.KTimespan(Int64.MinValue)`
+Minute    | `NULL('u')` | `c.Minute(Int32.MinValue)`  
+Second    | `NULL('v')` | `c.Second(Int32.MinValue)`  
+Time      | `NULL('t')` | `TimeSpan(Int64.MinValue)`
 
 We can check whether a given Object x is a q null using the `c` utility method:
 
@@ -84,32 +80,39 @@ public static bool qn(object x);
 
 ## Q types of C\# objects
 
+The following sections list the mapping of C\# types to [q data types](https://code.kx.com/q/basics/datatypes/).
+
+The datetime datatype (15) is deprecated in favour of the 8-byte timestamp datatype (12). 
+If such compatibility is required, this can be handled by various methods such as casting the resulting timestamp to a datetime on the server side.
+
+The default return value for all other objects is 0.
+
+### Atoms
+
 For reference, internally, types are mapped as follows for atoms:
 
-| C\# object type | q type number |
-|-----------------|------------------|
-| bool            | -1               |
-| byte            | -4               |
-| short           | -5               |
-| int             | -6               |
-| long            | -7               |
-| float           | -8               |
-| double          | -9               |
-| char            | -10              |
-| string          | -11              |
-| \*DateTime      | -12              |
-| Month           | -13              |
-| Date            | -14              |
-| \*DateTime      | -15              |
-| \*TimeSpan      | -16              |
-| Minute          | -17              |
-| Second          | -18              |
-| \*TimeSpan      | -19              |
+| C\# object type | q type |  q type number |
+|-----------------|--------| ---------------|
+| bool            | bool   | -1             |
+| Guid            | guid   | -2             |
+| byte            | byte   | -4             |
+| short           | short  | -5             |
+| int             | int    | -6             |
+| long            | long   | -7             |
+| float           | real   | -8             |
+| double          | float  | -9             |
+| char            | char   | -10            |
+| string          | symbol | -11            |
+| DateTime        | timestamp | -12         |
+| c.Month         | month | -13             |
+| c.Date          | date  | -14             |
+| (depreciated in favour of C# DateTime mapping to timestamp)  | datetime | -15          |
+| c.KTimespan       | timespan | -16          |
+| c.Minute        | minute | -17            |
+| c.Second        | second | -18            |
+| TimeSpan        | time   | -19            |
 
-
-and the following for complex data:
-
-
+### Vectors
 
 C\# object type | q type number
 ----------------|--------------
@@ -123,26 +126,21 @@ float\[\]       | 8
 double\[\]      | 9            
 char\[\]        | 10           
 String\[\]      | 11           
-\*DateTime\[\]  | 12           
-Month\[\]       | 13           
-Date\[\]        | 14           
-\*DateTime\[\]  | 15           
-\*TimeSpan\[\]  | 16           
-Minute\[\]      | 17           
-Second\[\]      | 18           
-\*TimeSpan\[\]  | 19           
-Flip            | 98           
-Dict            | 99           
+DateTime\[\]  | 12           
+c.Month\[\]       | 13           
+c.Date\[\]        | 14           
+(depreciated in favour of DateTime)  | 15           
+c.KTimeSpan\[\]  | 16           
+c.Minute\[\]      | 17           
+c.Second\[\]      | 18           
+TimeSpan\[\]  | 19           
 
+### Complex Data
 
-
-> **DateTime and Timespan**
-> 
-> With the introduction of the new time types (timespan, timestamp) the C\# driver evolved to remap these, 
-> hence it can no longer write q datetime/time: it writes timestamp and timespan. 
-> However, this can be handled by e.g. casting the resulting timestamp to a datetime on the server side if such compatibility is required.
-
-The default return value for all other objects is 0.
+C\# object type | q type |  q type number
+----------------|--------|--------------
+Flip            | table  | 98
+Dict            | dictionary |  99
 
 
 ## Interacting with kdb+ via an open `c` instance
