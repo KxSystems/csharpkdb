@@ -180,8 +180,7 @@ namespace kx
                 throw new ArgumentNullException(nameof(host),
                     $"Unable to initialise c. {nameof(host)} parameter cannot be null");
             }
-            if (port < 0 ||
-                port > 65535)
+            if (port < 0 || port > 65535)
             {
                 throw new ArgumentOutOfRangeException(nameof(port),
                     $"Unable to initialise c. {nameof(port)} parameter must be between MinPort and MaxPort");
@@ -939,11 +938,7 @@ namespace kx
         public static object at(object x, int i)
         {
             object r = ((Array)x).GetValue(i);
-            if (!qn(r))
-            {
-                return r;
-            }
-            return null;
+            return qn(r)?null:r;
         }
 
         private void ParseHeader()
@@ -2195,11 +2190,7 @@ namespace kx
             /// <inheritdoc />
             public int CompareTo(Date other)
             {
-                if (other is null)
-                {
-                    return 1;
-                }
-                return i.CompareTo(other.i);
+                return other is null?1:i.CompareTo(other.i);
             }
             #endregion IComparable<Date> Members
 
@@ -2229,11 +2220,7 @@ namespace kx
             /// </returns>
             public static bool operator ==(Date left, Date right)
             {
-                if (left is null)
-                {
-                    return right is null;
-                }
-                return left.Equals(right);
+                return left is null?right is null:left.Equals(right);
             }
 
             /// <summary>
@@ -2260,11 +2247,7 @@ namespace kx
             /// </returns>
             public static bool operator <(Date left, Date right)
             {
-                if (left is null)
-                {
-                    return !(right is null);
-                }
-                return left.CompareTo(right) == -1;
+                return left is null?!(right is null):left.CompareTo(right) == -1;
             }
 
             /// <summary>
@@ -2278,11 +2261,7 @@ namespace kx
             /// </returns>
             public static bool operator >(Date left, Date right)
             {
-                if (left is null)
-                {
-                    return false;
-                }
-                return left.CompareTo(right) == 1;
+                return !(left is null) && left.CompareTo(right) == 1;
             }
 
             /// <summary>
@@ -2297,11 +2276,7 @@ namespace kx
             /// </returns>
             public static bool operator <=(Date left, Date right)
             {
-                if (left is null)
-                {
-                    return true;
-                }
-                return left.CompareTo(right) <= 0;
+                return (left is null) || left.CompareTo(right) <= 0;
             }
 
             /// <summary>
@@ -2316,11 +2291,7 @@ namespace kx
             /// </returns>
             public static bool operator >=(Date left, Date right)
             {
-                if (left is null)
-                {
-                    return right is null;
-                }
-                return left.CompareTo(right) >= 0;
+                return left is null?right is null:left.CompareTo(right) >= 0;
             }
         }
 
@@ -2392,11 +2363,7 @@ namespace kx
             /// <inheritdoc />
             public int CompareTo(Month other)
             {
-                if (other is null)
-                {
-                    return 1;
-                }
-                return i.CompareTo(other.i);
+                return other is null?1:i.CompareTo(other.i);
             }
             #endregion IComparable<Month> Members
 
@@ -2426,11 +2393,7 @@ namespace kx
             /// </returns>
             public static bool operator ==(Month left, Month right)
             {
-                if (left is null)
-                {
-                    return right is null;
-                }
-                return left.Equals(right);
+                return left is null?right is null:left.Equals(right);
             }
 
             /// <summary>
@@ -2457,11 +2420,7 @@ namespace kx
             /// </returns>
             public static bool operator <(Month left, Month right)
             {
-                if (left is null)
-                {
-                    return !(right is null);
-                }
-                return left.CompareTo(right) == -1;
+                return left is null?!(right is null):left.CompareTo(right) == -1;
             }
 
             /// <summary>
@@ -2475,11 +2434,7 @@ namespace kx
             /// </returns>
             public static bool operator >(Month left, Month right)
             {
-                if (left is null)
-                {
-                    return false;
-                }
-                return left.CompareTo(right) == 1;
+                return !(left is null) && left.CompareTo(right) == 1;
             }
 
             /// <summary>
@@ -2494,11 +2449,7 @@ namespace kx
             /// </returns>
             public static bool operator <=(Month left, Month right)
             {
-                if (left is null)
-                {
-                    return true;
-                }
-                return left.CompareTo(right) <= 0;
+                return (left is null) || left.CompareTo(right) <= 0;
             }
 
             /// <summary>
@@ -2513,11 +2464,7 @@ namespace kx
             /// </returns>
             public static bool operator >=(Month left, Month right)
             {
-                if (left is null)
-                {
-                    return right is null;
-                }
-                return left.CompareTo(right) >= 0;
+                return left is null?right is null:left.CompareTo(right) >= 0;
             }
         }
 
@@ -2584,11 +2531,7 @@ namespace kx
             ///<inheritdoc />
             public int CompareTo(Minute other)
             {
-                if (other is null)
-                {
-                    return 1;
-                }
-                return i.CompareTo(other.i);
+                return other is null?1:i.CompareTo(other.i);
             }
             #endregion IComparable<Minute> Members
 
@@ -2618,11 +2561,7 @@ namespace kx
             /// </returns>
             public static bool operator ==(Minute left, Minute right)
             {
-                if (left is null)
-                {
-                    return right is null;
-                }
-                return left.Equals(right);
+                return left is null?right is null:left.Equals(right);
             }
 
             /// <summary>
@@ -2649,11 +2588,7 @@ namespace kx
             /// </returns>
             public static bool operator <(Minute left, Minute right)
             {
-                if (left is null)
-                {
-                    return !(right is null);
-                }
-                return left.CompareTo(right) == -1;
+                return left is null?!(right is null):left.CompareTo(right) == -1;
             }
 
             /// <summary>
@@ -2667,11 +2602,7 @@ namespace kx
             /// </returns>
             public static bool operator >(Minute left, Minute right)
             {
-                if (left is null)
-                {
-                    return false;
-                }
-                return left.CompareTo(right) == 1;
+                return !(left is null) && left.CompareTo(right) == 1;
             }
 
             /// <summary>
@@ -2685,11 +2616,7 @@ namespace kx
             /// </returns>
             public static bool operator <=(Minute left, Minute right)
             {
-                if (left is null)
-                {
-                    return true;
-                }
-                return left.CompareTo(right) <= 0;
+                return (left is null) || left.CompareTo(right) <= 0;
             }
 
             /// <summary>
@@ -2703,11 +2630,7 @@ namespace kx
             /// </returns>
             public static bool operator >=(Minute left, Minute right)
             {
-                if (left is null)
-                {
-                    return right is null;
-                }
-                return left.CompareTo(right) >= 0;
+                return left is null?right is null:left.CompareTo(right) >= 0;
             }
         }
 
@@ -2774,11 +2697,7 @@ namespace kx
             /// <inheritdoc />
             public int CompareTo(Second other)
             {
-                if (other is null)
-                {
-                    return 1;
-                }
-                return i.CompareTo(other.i);
+                return other is null?1:i.CompareTo(other.i);
             }
             #endregion IComparable<Second> Members
 
@@ -2808,11 +2727,7 @@ namespace kx
             /// </returns>
             public static bool operator ==(Second left, Second right)
             {
-                if (left is null)
-                {
-                    return right is null;
-                }
-                return left.Equals(right);
+                return left is null?right is null:left.Equals(right);
             }
 
             /// <summary>
@@ -2839,11 +2754,7 @@ namespace kx
             /// </returns>
             public static bool operator <(Second left, Second right)
             {
-                if (left is null)
-                {
-                    return !(right is null);
-                }
-                return left.CompareTo(right) == -1;
+                return left is null?!(right is null):left.CompareTo(right) == -1;
             }
 
             /// <summary>
@@ -2857,11 +2768,7 @@ namespace kx
             /// </returns>
             public static bool operator >(Second left, Second right)
             {
-                if (left is null)
-                {
-                    return false;
-                }
-                return left.CompareTo(right) == 1;
+                return !(left is null) && left.CompareTo(right) == 1;
             }
 
             /// <summary>
@@ -2875,11 +2782,7 @@ namespace kx
             /// </returns>
             public static bool operator <=(Second left, Second right)
             {
-                if (left is null)
-                {
-                    return true;
-                }
-                return left.CompareTo(right) <= 0;
+                return (left is null) || left.CompareTo(right) <= 0;
             }
 
             /// <summary>
@@ -2893,11 +2796,7 @@ namespace kx
             /// </returns>
             public static bool operator >=(Second left, Second right)
             {
-                if (left is null)
-                {
-                    return right is null;
-                }
-                return left.CompareTo(right) >= 0;
+                return left is null?right is null:left.CompareTo(right) >= 0;
             }
         }
 
@@ -2944,11 +2843,7 @@ namespace kx
             /// <inheritdoc />
             public override string ToString()
             {
-                if (!qn(t))
-                {
-                    return t.ToString();
-                }
-                return "";
+                return qn(t)?"":t.ToString();
             }
             #endregion Object Overrides
 
@@ -2964,11 +2859,7 @@ namespace kx
             /// <inheritdoc />
             public int CompareTo(KTimespan other)
             {
-                if (other is null)
-                {
-                    return 1;
-                }
-                return t.CompareTo(other.t);
+                return other is null?1:t.CompareTo(other.t);
             }
             #endregion IComparable<KTimespan> Members
 
@@ -2998,11 +2889,7 @@ namespace kx
             /// </returns>
             public static bool operator ==(KTimespan left, KTimespan right)
             {
-                if (left is null)
-                {
-                    return right is null;
-                }
-                return left.Equals(right);
+                return left is null?right is null:left.Equals(right);
             }
 
             /// <summary>
@@ -3029,11 +2916,7 @@ namespace kx
             /// </returns>
             public static bool operator <(KTimespan left, KTimespan right)
             {
-                if (left is null)
-                {
-                    return !(right is null);
-                }
-                return left.CompareTo(right) == -1;
+                return left is null?!(right is null):left.CompareTo(right) == -1;
             }
 
             /// <summary>
@@ -3047,11 +2930,7 @@ namespace kx
             /// </returns>
             public static bool operator >(KTimespan left, KTimespan right)
             {
-                if (left is null)
-                {
-                    return false;
-                }
-                return left.CompareTo(right) == 1;
+                return !(left is null) && left.CompareTo(right) == 1;
             }
 
             /// <summary>
@@ -3065,11 +2944,7 @@ namespace kx
             /// </returns>
             public static bool operator <=(KTimespan left, KTimespan right)
             {
-                if (left is null)
-                {
-                    return true;
-                }
-                return left.CompareTo(right) <= 0;
+                return (left is null) || left.CompareTo(right) <= 0;
             }
 
             /// <summary>
@@ -3083,11 +2958,7 @@ namespace kx
             /// </returns>
             public static bool operator >=(KTimespan left, KTimespan right)
             {
-                if (left is null)
-                {
-                    return right is null;
-                }
-                return left.CompareTo(right) >= 0;
+                return left is null?right is null:left.CompareTo(right) >= 0;
             }
         }
 
@@ -3112,12 +2983,10 @@ namespace kx
                 {
                     throw new ArgumentNullException(nameof(X));
                 }
-
                 if (Y == null)
                 {
                     throw new ArgumentNullException(nameof(Y));
                 }
-
                 x = X;
                 y = Y;
             }
@@ -3151,7 +3020,6 @@ namespace kx
                 {
                     throw new ArgumentNullException(nameof(X));
                 }
-
                 x = (string[])X.x;
                 y = (object[])X.y;
             }
