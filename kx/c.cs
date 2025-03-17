@@ -402,8 +402,13 @@ namespace kx
         /// <returns>
         /// Deserialised response to request.
         /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
         public object k(string s)
         {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
             return k(s.ToCharArray());
         }
 
@@ -416,8 +421,13 @@ namespace kx
         /// <returns>
         /// Deserialised response to request.
         /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
         public object k(string s, object x)
         {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
             object[] array = new object[]
             {
                 s.ToCharArray(),
@@ -437,8 +447,13 @@ namespace kx
         /// <returns>
         /// Deserialised response to request.
         /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
         public object k(string s, object x, object y)
         {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
             object[] array = new object[]
             {
                 s.ToCharArray(),
@@ -460,8 +475,13 @@ namespace kx
         /// <returns>
         /// Deserialised response to request.
         /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
         public object k(string s, object x, object y, object z)
         {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
             object[] array = new object[]
             {
                 s.ToCharArray(),
