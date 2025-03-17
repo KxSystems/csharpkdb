@@ -1,4 +1,6 @@
-﻿using NUnit.Framework;
+﻿using System;
+using kx.Test.TestUtils;
+using NUnit.Framework;
 
 namespace kx.Test.Connection
 {
@@ -54,6 +56,12 @@ namespace kx.Test.Connection
         }
 
         [Test]
+        public void ConnectionAtThrowsIfXIsNull()
+        {
+            Assert.Throws<ArgumentNullException>(() => c.at(null, 0));
+        }
+
+        [Test]
         public void ConnectionAtReturnsExpectedObjectFromArrayIndex()
         {
             const string expected = "foo";
@@ -78,6 +86,12 @@ namespace kx.Test.Connection
             object result = c.at(new object[] { string.Empty, "bar" }, 0);
 
             Assert.IsNull(result);
+        }
+
+        [Test]
+        public void ConnectionTdThrowsIfXIsNull()
+        {
+            Assert.Throws<ArgumentNullException>(() => c.td(null));
         }
 
         [Test]

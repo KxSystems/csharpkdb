@@ -878,8 +878,13 @@ namespace kx
         /// <returns>
         /// A simple table.
         /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="X"/> parameter was null.</exception>
         public static Flip td(object X)
         {
+            if (X == null)
+            {
+                throw new ArgumentNullException(nameof(X));
+            }
             if (t(X) == 98)
             {
                 return (Flip)X;
@@ -935,8 +940,13 @@ namespace kx
         /// The object at the index, or null if the object value represents 
         /// a KDB+ null value for its' type.
         /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="x"/> parameter was null.</exception>
         public static object at(object x, int i)
         {
+            if (x == null)
+            {
+                throw new ArgumentNullException(nameof(x));
+            }
             object r = ((Array)x).GetValue(i);
             return qn(r)?null:r;
         }
