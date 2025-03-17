@@ -863,12 +863,14 @@ namespace kx
         /// </remarks>
         public static bool qn(object x)
         {
+#pragma warning disable CA1062
             int t = -c.t(x);
             if (t == 2 || t > 4)
             {
                 return x.Equals(KNullValues[t]);
             }
             return false;
+#pragma warning restore CA1062
         }
 
         /// <summary>
@@ -911,8 +913,13 @@ namespace kx
         /// <returns>
         /// The number of elements in an object.
         /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="x"/> parameter was null.</exception>
         public static int n(object x)
         {
+            if (x == null)
+            {
+                throw new ArgumentNullException(nameof(x));
+            }
             Dict dict = x as Dict;
             if (dict != null)
             {
@@ -923,7 +930,6 @@ namespace kx
             {
                 return n(flip.y[0]);
             }
-
             if (x is char[])
             {
                 return e.GetBytes((char[])x).Length;

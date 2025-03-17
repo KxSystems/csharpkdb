@@ -56,6 +56,12 @@ namespace kx.Test.Connection
         }
 
         [Test]
+        public void ConnectionThrowsIfLengthForNull()
+        {
+            Assert.Throws<ArgumentNullException>(() => c.n(null));
+        }
+
+        [Test]
         public void ConnectionAtThrowsIfXIsNull()
         {
             Assert.Throws<ArgumentNullException>(() => c.at(null, 0));
