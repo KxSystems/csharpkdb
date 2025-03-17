@@ -577,8 +577,13 @@ namespace kx
         /// Sends an async message to the remote KDB+ process with a specified expression.
         /// </summary>
         /// <param name="s">The expression to send.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
         public async Task ksAsync(string s)
         {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
             await wAsync(0, s.ToCharArray()).ConfigureAwait(false);
         }
         /// <summary>
@@ -609,8 +614,13 @@ namespace kx
         /// </summary>
         /// <param name="s">The expression to send.</param>
         /// <param name="x">The object parameter to send.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
         public async Task ksAsync(string s, object x)
         {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
             object[] array = new object[]
             {
                 s.ToCharArray(),
@@ -651,8 +661,13 @@ namespace kx
         /// <param name="s">The expression to send.</param>
         /// <param name="x">The first object parameter to send.</param>
         /// <param name="y">The second object parameter to send.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
         public async Task ksAsync(string s, object x, object y)
         {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
             object[] array = new object[]
             {
                 s.ToCharArray(),

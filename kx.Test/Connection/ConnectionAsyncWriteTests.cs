@@ -32,6 +32,46 @@ namespace kx.Test.Connection
         }
 
         [Test]
+        public void ConnectionWritesThrowsWithSingleParamIfSIsNull()
+        {
+            using (MemoryStream s = new MemoryStream())
+            {
+                using (var connection = new c(s))
+                {
+                    Assert.ThrowsAsync<ArgumentNullException>(() => connection.ksAsync(null));
+                }
+            }
+        }
+
+        [Test]
+        public void ConnectionWritesThrowsWith2ParamsIfSIsNull()
+        {
+            object expected = "param";
+
+            using (MemoryStream s = new MemoryStream())
+            {
+                using (var connection = new c(s))
+                {
+                    Assert.ThrowsAsync<ArgumentNullException>(() => connection.ksAsync(null,expected));
+                }
+            }
+        }
+
+        [Test]
+        public void ConnectionWritesThrowsWith3ParamsIfSIsNull()
+        {
+            object expected = "param";
+
+            using (MemoryStream s = new MemoryStream())
+            {
+                using (var connection = new c(s))
+                {
+                    Assert.ThrowsAsync<ArgumentNullException>(() => connection.ksAsync(null,expected,expected));
+                }
+            }
+        }
+
+        [Test]
         public async Task ConnectionWritesExpectedObjectParameterToClientStreamAsync()
         {
             object expected = "param1";
