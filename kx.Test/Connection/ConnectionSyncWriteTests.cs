@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System;
 using Moq;
 using NUnit.Framework;
 
@@ -9,6 +10,64 @@ namespace kx.Test.Connection
     [TestFixture]
     public class ConnectionSyncWriteTests
     {
+        [Test]
+        public void ConnectionWritesThrowsIfSingleParamSIsNull()
+        {
+            List<byte> bytesWritten = new List<byte>();
+
+            Mock<Stream> testStream = CreateTestStream(bytesWritten);
+
+            using (var connection = new c(testStream.Object))
+            {
+                Assert.Throws<ArgumentNullException>(() => connection.k(null));
+            }
+        }
+
+        [Test]
+        public void ConnectionWritesThrowsIf2ParamSIsNull()
+        {
+            object expected = "param";
+
+            List<byte> bytesWritten = new List<byte>();
+
+            Mock<Stream> testStream = CreateTestStream(bytesWritten);
+
+            using (var connection = new c(testStream.Object))
+            {
+                Assert.Throws<ArgumentNullException>(() => connection.k(null,expected));
+            }
+        }
+
+        [Test]
+        public void ConnectionWritesThrowsIf3ParamSIsNull()
+        {
+            object expected = "param";
+
+            List<byte> bytesWritten = new List<byte>();
+
+            Mock<Stream> testStream = CreateTestStream(bytesWritten);
+
+            using (var connection = new c(testStream.Object))
+            {
+                Assert.Throws<ArgumentNullException>(() => connection.k(null,expected,expected));
+            }
+        }
+
+        [Test]
+        public void ConnectionWritesThrowsIf4ParamSIsNull()
+        {
+            object expected = "param";
+
+            List<byte> bytesWritten = new List<byte>();
+
+            Mock<Stream> testStream = CreateTestStream(bytesWritten);
+
+            using (var connection = new c(testStream.Object))
+            {
+                Assert.Throws<ArgumentNullException>(() => connection.k(null,expected,expected,expected));
+            }
+        }
+
         [Test]
         public void ConnectionWritesExpectedObjectParameterToClientStreamSynchronously()
         {

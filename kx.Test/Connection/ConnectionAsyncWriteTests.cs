@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System;
 using Moq;
 using NUnit.Framework;
 
@@ -31,6 +32,46 @@ namespace kx.Test.Connection
         }
 
         [Test]
+        public void ConnectionWritesThrowsWithSingleParamIfSIsNull()
+        {
+            using (MemoryStream s = new MemoryStream())
+            {
+                using (var connection = new c(s))
+                {
+                    Assert.ThrowsAsync<ArgumentNullException>(() => connection.ksAsync(null));
+                }
+            }
+        }
+
+        [Test]
+        public void ConnectionWritesThrowsWith2ParamsIfSIsNull()
+        {
+            object expected = "param";
+
+            using (MemoryStream s = new MemoryStream())
+            {
+                using (var connection = new c(s))
+                {
+                    Assert.ThrowsAsync<ArgumentNullException>(() => connection.ksAsync(null,expected));
+                }
+            }
+        }
+
+        [Test]
+        public void ConnectionWritesThrowsWith3ParamsIfSIsNull()
+        {
+            object expected = "param";
+
+            using (MemoryStream s = new MemoryStream())
+            {
+                using (var connection = new c(s))
+                {
+                    Assert.ThrowsAsync<ArgumentNullException>(() => connection.ksAsync(null,expected,expected));
+                }
+            }
+        }
+
+        [Test]
         public async Task ConnectionWritesExpectedObjectParameterToClientStreamAsync()
         {
             object expected = "param1";
@@ -45,6 +86,49 @@ namespace kx.Test.Connection
 
                     Assert.AreEqual(expected, result);
                 }
+            }
+        }
+
+        [Test]
+        public void ConnectionWritesThrowsIfSIsNull()
+        {
+            List<byte> bytesWritten = new List<byte>();
+
+            Mock<Stream> testStream = CreateTestStream(bytesWritten);
+
+            using (var connection = new c(testStream.Object))
+            {
+                Assert.Throws<ArgumentNullException>(() => connection.ks((string)null));
+            }
+        }
+
+        [Test]
+        public void ConnectionWritesWith2ParamsThrowsIfSIsNull()
+        {
+            object expected = "param";
+
+            List<byte> bytesWritten = new List<byte>();
+
+            Mock<Stream> testStream = CreateTestStream(bytesWritten);
+
+            using (var connection = new c(testStream.Object))
+            {
+                Assert.Throws<ArgumentNullException>(() => connection.ks(null,expected));
+            }
+        }
+
+        [Test]
+        public void ConnectionWritesWith3ParamsThrowsIfSIsNull()
+        {
+            object expected = "param";
+
+            List<byte> bytesWritten = new List<byte>();
+
+            Mock<Stream> testStream = CreateTestStream(bytesWritten);
+
+            using (var connection = new c(testStream.Object))
+            {
+                Assert.Throws<ArgumentNullException>(() => connection.ks(null,expected,expected));
             }
         }
 

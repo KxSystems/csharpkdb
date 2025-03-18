@@ -2,6 +2,7 @@
 */bin/*
 */.vs/*
 *.vs/*
+*.vscode/*
 coverage.xml
 CodeCoverage/*
 */TestResults/*

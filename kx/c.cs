@@ -180,8 +180,7 @@ namespace kx
                 throw new ArgumentNullException(nameof(host),
                     $"Unable to initialise c. {nameof(host)} parameter cannot be null");
             }
-            if (port < 0 ||
-                port > 65535)
+            if (port < 0 || port > 65535)
             {
                 throw new ArgumentOutOfRangeException(nameof(port),
                     $"Unable to initialise c. {nameof(port)} parameter must be between MinPort and MaxPort");
@@ -303,6 +302,7 @@ namespace kx
             set;
         }
 
+#pragma warning disable CA1819
         /// <summary>
         /// Gets the buffer used to store the incoming message bytes from the remote prior 
         /// to de-serialisation.
@@ -311,6 +311,7 @@ namespace kx
         {
             get { return _readBuffer; }
         }
+#pragma warning restore CA1819
 
         /// <summary>
         /// Gets or sets the current postion of the de-serialiser with the read buffer.
@@ -403,8 +404,13 @@ namespace kx
         /// <returns>
         /// Deserialised response to request.
         /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
         public object k(string s)
         {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
             return k(s.ToCharArray());
         }
 
@@ -417,8 +423,13 @@ namespace kx
         /// <returns>
         /// Deserialised response to request.
         /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
         public object k(string s, object x)
         {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
             object[] array = new object[]
             {
                 s.ToCharArray(),
@@ -438,8 +449,13 @@ namespace kx
         /// <returns>
         /// Deserialised response to request.
         /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
         public object k(string s, object x, object y)
         {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
             object[] array = new object[]
             {
                 s.ToCharArray(),
@@ -461,8 +477,13 @@ namespace kx
         /// <returns>
         /// Deserialised response to request.
         /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
         public object k(string s, object x, object y, object z)
         {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
             object[] array = new object[]
             {
                 s.ToCharArray(),
@@ -544,8 +565,13 @@ namespace kx
         /// Sends an async message to the remote KDB+ process with a specified expression.
         /// </summary>
         /// <param name="s">The expression to send.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
         public void ks(string s)
         {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
             w(0, s.ToCharArray());
         }
 
@@ -553,8 +579,13 @@ namespace kx
         /// Sends an async message to the remote KDB+ process with a specified expression.
         /// </summary>
         /// <param name="s">The expression to send.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
         public async Task ksAsync(string s)
         {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
             await wAsync(0, s.ToCharArray()).ConfigureAwait(false);
         }
         /// <summary>
@@ -563,8 +594,13 @@ namespace kx
         /// </summary>
         /// <param name="s">The expression to send.</param>
         /// <param name="x">The object parameter to send.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
         public void ks(string s, object x)
         {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
             object[] array = new object[]
             {
                 s.ToCharArray(),
@@ -580,8 +616,13 @@ namespace kx
         /// </summary>
         /// <param name="s">The expression to send.</param>
         /// <param name="x">The object parameter to send.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
         public async Task ksAsync(string s, object x)
         {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
             object[] array = new object[]
             {
                 s.ToCharArray(),
@@ -598,8 +639,13 @@ namespace kx
         /// <param name="s">The expression to send.</param>
         /// <param name="x">The first object parameter to send.</param>
         /// <param name="y">The second object parameter to send.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
         public void ks(string s, object x, object y)
         {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
             object[] array = new object[]
             {
                 s.ToCharArray(),
@@ -617,8 +663,13 @@ namespace kx
         /// <param name="s">The expression to send.</param>
         /// <param name="x">The first object parameter to send.</param>
         /// <param name="y">The second object parameter to send.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
         public async Task ksAsync(string s, object x, object y)
         {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
             object[] array = new object[]
             {
                 s.ToCharArray(),
@@ -864,12 +915,14 @@ namespace kx
         /// </remarks>
         public static bool qn(object x)
         {
+#pragma warning disable CA1062
             int t = -c.t(x);
             if (t == 2 || t > 4)
             {
                 return x.Equals(KNullValues[t]);
             }
             return false;
+#pragma warning restore CA1062
         }
 
         /// <summary>
@@ -879,8 +932,13 @@ namespace kx
         /// <returns>
         /// A simple table.
         /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="X"/> parameter was null.</exception>
         public static Flip td(object X)
         {
+            if (X == null)
+            {
+                throw new ArgumentNullException(nameof(X));
+            }
             if (t(X) == 98)
             {
                 return (Flip)X;
@@ -907,8 +965,13 @@ namespace kx
         /// <returns>
         /// The number of elements in an object.
         /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="x"/> parameter was null.</exception>
         public static int n(object x)
         {
+            if (x == null)
+            {
+                throw new ArgumentNullException(nameof(x));
+            }
             Dict dict = x as Dict;
             if (dict != null)
             {
@@ -919,7 +982,6 @@ namespace kx
             {
                 return n(flip.y[0]);
             }
-
             if (x is char[])
             {
                 return e.GetBytes((char[])x).Length;
@@ -936,14 +998,15 @@ namespace kx
         /// The object at the index, or null if the object value represents 
         /// a KDB+ null value for its' type.
         /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="x"/> parameter was null.</exception>
         public static object at(object x, int i)
         {
-            object r = ((Array)x).GetValue(i);
-            if (!qn(r))
+            if (x == null)
             {
-                return r;
+                throw new ArgumentNullException(nameof(x));
             }
-            return null;
+            object r = ((Array)x).GetValue(i);
+            return qn(r)?null:r;
         }
 
         private void ParseHeader()
@@ -2195,11 +2258,7 @@ namespace kx
             /// <inheritdoc />
             public int CompareTo(Date other)
             {
-                if (other is null)
-                {
-                    return 1;
-                }
-                return i.CompareTo(other.i);
+                return other is null?1:i.CompareTo(other.i);
             }
             #endregion IComparable<Date> Members
 
@@ -2229,11 +2288,7 @@ namespace kx
             /// </returns>
             public static bool operator ==(Date left, Date right)
             {
-                if (left is null)
-                {
-                    return right is null;
-                }
-                return left.Equals(right);
+                return left is null?right is null:left.Equals(right);
             }
 
             /// <summary>
@@ -2260,11 +2315,7 @@ namespace kx
             /// </returns>
             public static bool operator <(Date left, Date right)
             {
-                if (left is null)
-                {
-                    return !(right is null);
-                }
-                return left.CompareTo(right) == -1;
+                return left is null?!(right is null):left.CompareTo(right) == -1;
             }
 
             /// <summary>
@@ -2278,11 +2329,7 @@ namespace kx
             /// </returns>
             public static bool operator >(Date left, Date right)
             {
-                if (left is null)
-                {
-                    return false;
-                }
-                return left.CompareTo(right) == 1;
+                return !(left is null) && left.CompareTo(right) == 1;
             }
 
             /// <summary>
@@ -2297,11 +2344,7 @@ namespace kx
             /// </returns>
             public static bool operator <=(Date left, Date right)
             {
-                if (left is null)
-                {
-                    return true;
-                }
-                return left.CompareTo(right) <= 0;
+                return (left is null) || left.CompareTo(right) <= 0;
             }
 
             /// <summary>
@@ -2316,11 +2359,7 @@ namespace kx
             /// </returns>
             public static bool operator >=(Date left, Date right)
             {
-                if (left is null)
-                {
-                    return right is null;
-                }
-                return left.CompareTo(right) >= 0;
+                return left is null?right is null:left.CompareTo(right) >= 0;
             }
         }
 
@@ -2392,11 +2431,7 @@ namespace kx
             /// <inheritdoc />
             public int CompareTo(Month other)
             {
-                if (other is null)
-                {
-                    return 1;
-                }
-                return i.CompareTo(other.i);
+                return other is null?1:i.CompareTo(other.i);
             }
             #endregion IComparable<Month> Members
 
@@ -2426,11 +2461,7 @@ namespace kx
             /// </returns>
             public static bool operator ==(Month left, Month right)
             {
-                if (left is null)
-                {
-                    return right is null;
-                }
-                return left.Equals(right);
+                return left is null?right is null:left.Equals(right);
             }
 
             /// <summary>
@@ -2457,11 +2488,7 @@ namespace kx
             /// </returns>
             public static bool operator <(Month left, Month right)
             {
-                if (left is null)
-                {
-                    return !(right is null);
-                }
-                return left.CompareTo(right) == -1;
+                return left is null?!(right is null):left.CompareTo(right) == -1;
             }
 
             /// <summary>
@@ -2475,11 +2502,7 @@ namespace kx
             /// </returns>
             public static bool operator >(Month left, Month right)
             {
-                if (left is null)
-                {
-                    return false;
-                }
-                return left.CompareTo(right) == 1;
+                return !(left is null) && left.CompareTo(right) == 1;
             }
 
             /// <summary>
@@ -2494,11 +2517,7 @@ namespace kx
             /// </returns>
             public static bool operator <=(Month left, Month right)
             {
-                if (left is null)
-                {
-                    return true;
-                }
-                return left.CompareTo(right) <= 0;
+                return (left is null) || left.CompareTo(right) <= 0;
             }
 
             /// <summary>
@@ -2513,11 +2532,7 @@ namespace kx
             /// </returns>
             public static bool operator >=(Month left, Month right)
             {
-                if (left is null)
-                {
-                    return right is null;
-                }
-                return left.CompareTo(right) >= 0;
+                return left is null?right is null:left.CompareTo(right) >= 0;
             }
         }
 
@@ -2584,11 +2599,7 @@ namespace kx
             ///<inheritdoc />
             public int CompareTo(Minute other)
             {
-                if (other is null)
-                {
-                    return 1;
-                }
-                return i.CompareTo(other.i);
+                return other is null?1:i.CompareTo(other.i);
             }
             #endregion IComparable<Minute> Members
 
@@ -2618,11 +2629,7 @@ namespace kx
             /// </returns>
             public static bool operator ==(Minute left, Minute right)
             {
-                if (left is null)
-                {
-                    return right is null;
-                }
-                return left.Equals(right);
+                return left is null?right is null:left.Equals(right);
             }
 
             /// <summary>
@@ -2649,11 +2656,7 @@ namespace kx
             /// </returns>
             public static bool operator <(Minute left, Minute right)
             {
-                if (left is null)
-                {
-                    return !(right is null);
-                }
-                return left.CompareTo(right) == -1;
+                return left is null?!(right is null):left.CompareTo(right) == -1;
             }
 
             /// <summary>
@@ -2667,11 +2670,7 @@ namespace kx
             /// </returns>
             public static bool operator >(Minute left, Minute right)
             {
-                if (left is null)
-                {
-                    return false;
-                }
-                return left.CompareTo(right) == 1;
+                return !(left is null) && left.CompareTo(right) == 1;
             }
 
             /// <summary>
@@ -2685,11 +2684,7 @@ namespace kx
             /// </returns>
             public static bool operator <=(Minute left, Minute right)
             {
-                if (left is null)
-                {
-                    return true;
-                }
-                return left.CompareTo(right) <= 0;
+                return (left is null) || left.CompareTo(right) <= 0;
             }
 
             /// <summary>
@@ -2703,11 +2698,7 @@ namespace kx
             /// </returns>
             public static bool operator >=(Minute left, Minute right)
             {
-                if (left is null)
-                {
-                    return right is null;
-                }
-                return left.CompareTo(right) >= 0;
+                return left is null?right is null:left.CompareTo(right) >= 0;
             }
         }
 
@@ -2774,11 +2765,7 @@ namespace kx
             /// <inheritdoc />
             public int CompareTo(Second other)
             {
-                if (other is null)
-                {
-                    return 1;
-                }
-                return i.CompareTo(other.i);
+                return other is null?1:i.CompareTo(other.i);
             }
             #endregion IComparable<Second> Members
 
@@ -2808,11 +2795,7 @@ namespace kx
             /// </returns>
             public static bool operator ==(Second left, Second right)
             {
-                if (left is null)
-                {
-                    return right is null;
-                }
-                return left.Equals(right);
+                return left is null?right is null:left.Equals(right);
             }
 
             /// <summary>
@@ -2839,11 +2822,7 @@ namespace kx
             /// </returns>
             public static bool operator <(Second left, Second right)
             {
-                if (left is null)
-                {
-                    return !(right is null);
-                }
-                return left.CompareTo(right) == -1;
+                return left is null?!(right is null):left.CompareTo(right) == -1;
             }
 
             /// <summary>
@@ -2857,11 +2836,7 @@ namespace kx
             /// </returns>
             public static bool operator >(Second left, Second right)
             {
-                if (left is null)
-                {
-                    return false;
-                }
-                return left.CompareTo(right) == 1;
+                return !(left is null) && left.CompareTo(right) == 1;
             }
 
             /// <summary>
@@ -2875,11 +2850,7 @@ namespace kx
             /// </returns>
             public static bool operator <=(Second left, Second right)
             {
-                if (left is null)
-                {
-                    return true;
-                }
-                return left.CompareTo(right) <= 0;
+                return (left is null) || left.CompareTo(right) <= 0;
             }
 
             /// <summary>
@@ -2893,11 +2864,7 @@ namespace kx
             /// </returns>
             public static bool operator >=(Second left, Second right)
             {
-                if (left is null)
-                {
-                    return right is null;
-                }
-                return left.CompareTo(right) >= 0;
+                return left is null?right is null:left.CompareTo(right) >= 0;
             }
         }
 
@@ -2944,11 +2911,7 @@ namespace kx
             /// <inheritdoc />
             public override string ToString()
             {
-                if (!qn(t))
-                {
-                    return t.ToString();
-                }
-                return "";
+                return qn(t)?"":t.ToString();
             }
             #endregion Object Overrides
 
@@ -2964,11 +2927,7 @@ namespace kx
             /// <inheritdoc />
             public int CompareTo(KTimespan other)
             {
-                if (other is null)
-                {
-                    return 1;
-                }
-                return t.CompareTo(other.t);
+                return other is null?1:t.CompareTo(other.t);
             }
             #endregion IComparable<KTimespan> Members
 
@@ -2998,11 +2957,7 @@ namespace kx
             /// </returns>
             public static bool operator ==(KTimespan left, KTimespan right)
             {
-                if (left is null)
-                {
-                    return right is null;
-                }
-                return left.Equals(right);
+                return left is null?right is null:left.Equals(right);
             }
 
             /// <summary>
@@ -3029,11 +2984,7 @@ namespace kx
             /// </returns>
             public static bool operator <(KTimespan left, KTimespan right)
             {
-                if (left is null)
-                {
-                    return !(right is null);
-                }
-                return left.CompareTo(right) == -1;
+                return left is null?!(right is null):left.CompareTo(right) == -1;
             }
 
             /// <summary>
@@ -3047,11 +2998,7 @@ namespace kx
             /// </returns>
             public static bool operator >(KTimespan left, KTimespan right)
             {
-                if (left is null)
-                {
-                    return false;
-                }
-                return left.CompareTo(right) == 1;
+                return !(left is null) && left.CompareTo(right) == 1;
             }
 
             /// <summary>
@@ -3065,11 +3012,7 @@ namespace kx
             /// </returns>
             public static bool operator <=(KTimespan left, KTimespan right)
             {
-                if (left is null)
-                {
-                    return true;
-                }
-                return left.CompareTo(right) <= 0;
+                return (left is null) || left.CompareTo(right) <= 0;
             }
 
             /// <summary>
@@ -3083,11 +3026,7 @@ namespace kx
             /// </returns>
             public static bool operator >=(KTimespan left, KTimespan right)
             {
-                if (left is null)
-                {
-                    return right is null;
-                }
-                return left.CompareTo(right) >= 0;
+                return left is null?right is null:left.CompareTo(right) >= 0;
             }
         }
 
@@ -3112,12 +3051,10 @@ namespace kx
                 {
                     throw new ArgumentNullException(nameof(X));
                 }
-
                 if (Y == null)
                 {
                     throw new ArgumentNullException(nameof(Y));
                 }
-
                 x = X;
                 y = Y;
             }
@@ -3151,11 +3088,10 @@ namespace kx
                 {
                     throw new ArgumentNullException(nameof(X));
                 }
-
                 x = (string[])X.x;
                 y = (object[])X.y;
             }
-
+#pragma warning disable CA1819
             /// <summary>
             /// Gets or sets the array of column names
             /// </summary>
@@ -3165,7 +3101,7 @@ namespace kx
             /// Gets or sets the array of column values.
             /// </summary>
             public object[] y { get; set; }
-
+#pragma warning restore CA1819
             /// <summary>
             /// Gets the column values given the column name.
             /// </summary>
