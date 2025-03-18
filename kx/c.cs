@@ -302,6 +302,7 @@ namespace kx
             set;
         }
 
+#pragma warning disable CA1819
         /// <summary>
         /// Gets the buffer used to store the incoming message bytes from the remote prior 
         /// to de-serialisation.
@@ -310,6 +311,7 @@ namespace kx
         {
             get { return _readBuffer; }
         }
+#pragma warning restore CA1819
 
         /// <summary>
         /// Gets or sets the current postion of the de-serialiser with the read buffer.
@@ -3089,7 +3091,7 @@ namespace kx
                 x = (string[])X.x;
                 y = (object[])X.y;
             }
-
+#pragma warning disable CA1819
             /// <summary>
             /// Gets or sets the array of column names
             /// </summary>
@@ -3099,7 +3101,7 @@ namespace kx
             /// Gets or sets the array of column values.
             /// </summary>
             public object[] y { get; set; }
-
+#pragma warning restore CA1819
             /// <summary>
             /// Gets the column values given the column name.
             /// </summary>
