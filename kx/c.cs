@@ -16,8 +16,14 @@ namespace kx
     /// This class is essentially a serializer/deserializer of .NET types 
     /// to/from the KDB+ IPC wire format, enabling remote method invocation in KDB+ via TCP/IP.
     /// </remarks>
-    public class c : TcpClient
+    public class c : IDisposable
     {
+        private readonly Socket _socket;
+
+        private readonly Stream _clientStream;
+
+        private bool disposed;
+
         private const int DefaultMaxBufferSize = 65536;
 
         private const long Year2000Ticks = 630822816000000000L;
@@ -82,8 +88,6 @@ namespace kx
             4,
             4
         };
-
-        private readonly Stream _clientStream;
 
         private readonly int _maxBufferSize;
 
@@ -154,6 +158,60 @@ namespace kx
         {
         }
 
+        private c(string host,
+            int port,
+            string userPassword,
+            int maxBufferSize,
+            bool useTLS,
+            bool uds)
+        {
+            if (host == null)
+            {
+                throw new ArgumentNullException(nameof(host),
+                    $"Unable to initialise c. {nameof(host)} parameter cannot be null");
+            }
+            if (!uds && (port < 0 || port > 65535))
+            {
+                throw new ArgumentOutOfRangeException(nameof(port),
+                    $"Unable to initialise c. {nameof(port)} parameter must be between MinPort and MaxPort");
+            }
+            if (userPassword == null)
+            {
+                throw new ArgumentNullException(nameof(userPassword),
+                    $"Unable to initialise c. {nameof(userPassword)} parameter cannot be null");
+            }
+
+            _maxBufferSize = maxBufferSize;
+            if(uds)
+            {
+                _socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                _socket.Connect(new UnixDomainSocketEndPoint(host));
+                _isLoopback = true;
+            }
+            else
+            {
+                _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                _socket.Connect(host, port);
+                _isLoopback = _socket.RemoteEndPoint is IPEndPoint &&
+                    IPAddress.IsLoopback((_socket.RemoteEndPoint as IPEndPoint).Address);
+            }
+            _clientStream = new NetworkStream(_socket);
+            if (useTLS)
+            {
+                _clientStream = new SslStream(_clientStream, false);
+                ((SslStream)_clientStream).AuthenticateAsClient(host);
+            }
+            _writeBuffer = new byte[2 + userPassword.Length];
+            _writePosition = 0;
+            w(userPassword + "\u0003");
+            _clientStream.Write(_writeBuffer, 0, _writePosition);
+            if (_clientStream.Read(_writeBuffer, 0, 1) != 1)
+            {
+                throw new KException("access");
+            }
+            _versionNumber = Math.Min(_writeBuffer[0], (byte)3);
+        }
+
         /// <summary>
         /// Initialises a new instance of <see cref="c" /> with a specified host and port 
         /// to connect to, a username/password for authentication, an optional maximum buffersize and
@@ -174,42 +232,28 @@ namespace kx
             string userPassword,
             int maxBufferSize = DefaultMaxBufferSize,
             bool useTLS = false)
+            : this(host, port, userPassword, maxBufferSize, useTLS, false)
         {
-            if (host == null)
-            {
-                throw new ArgumentNullException(nameof(host),
-                    $"Unable to initialise c. {nameof(host)} parameter cannot be null");
-            }
-            if (port < 0 || port > 65535)
-            {
-                throw new ArgumentOutOfRangeException(nameof(port),
-                    $"Unable to initialise c. {nameof(port)} parameter must be between MinPort and MaxPort");
-            }
-            if (userPassword == null)
-            {
-                throw new ArgumentNullException(nameof(userPassword),
-                    $"Unable to initialise c. {nameof(userPassword)} parameter cannot be null");
-            }
+        }
 
-            _maxBufferSize = maxBufferSize;
-            Connect(host, port);
-            _clientStream = GetStream();
-            if (useTLS)
-            {
-                _clientStream = new SslStream(_clientStream, false);
-                ((SslStream)_clientStream).AuthenticateAsClient(host);
-            }
-            _writeBuffer = new byte[2 + userPassword.Length];
-            _writePosition = 0;
-            w(userPassword + "\u0003");
-            _clientStream.Write(_writeBuffer, 0, _writePosition);
-            if (_clientStream.Read(_writeBuffer, 0, 1) != 1)
-            {
-                throw new KException("access");
-            }
-            _versionNumber = Math.Min(_writeBuffer[0], (byte)3);
-            _isLoopback = Client.RemoteEndPoint is IPEndPoint &&
-                IPAddress.IsLoopback((Client.RemoteEndPoint as IPEndPoint).Address);
+        /// <summary>
+        /// Initialises a new instance of <see cref="c" /> using a Unix Domain Socket connection. 
+        /// The maximum transmissible message size is 2GB due to a limitation with the maximum array size in C sharp, 
+        /// therefore <a href="https://code.kx.com/q/basics/ipc/#handshake">capability 3</a> will be used within the kdb+ handshake.
+        /// </summary>
+        /// <param name="file">uds file e.g. "/tmp/kx.5010" is the default with kdb+ listening on port 5010</param>
+        /// <param name="userPassword">The username and passsword, as "username:password" for remote authorisation.</param>
+        /// <param name="maxBufferSize">The maximum buffer size, default is 65536.</param>
+        /// <param name="useTLS">A boolean flag indicating whether or not TLS authentication is enabled, default is false.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="file" /> or <paramref name="userPassword" /> was null.</exception>
+        /// <exception cref="KException">Unable to connect to KDB+ process, access denied or process unavailable.</exception>
+        /// <exception cref="PlatformNotSupportedException">The current OS does not support Unix Domain Sockets</exception>
+        public c(string file,
+            string userPassword,
+            int maxBufferSize = DefaultMaxBufferSize,
+            bool useTLS = false)
+            : this(file, 0, userPassword, maxBufferSize, useTLS, true)
+        {
         }
 
         /// <summary>
@@ -347,16 +391,57 @@ namespace kx
         public static Encoding e { get; set; } = Encoding.ASCII;
 
         /// <summary>
-        /// Disposes this <see cref="kx.c"/> instance and requests that the underlying
-        /// stream and TCP connection be closed.
+        /// Requests that the underlying stream and TCP connection be closed.
         /// </summary>
-        public new void Close()
+        public void Close()
         {
             if (_clientStream != null)
             {
                 _clientStream.Close();
             }
-            base.Close();
+            _socket.Close();
+        }
+
+        /// <summary>
+        /// Destructor
+        /// </summary>
+        ~c()
+        {
+            Dispose(false);
+        }
+
+        /// <summary>
+        /// Releases unmanaged resources and performs other cleanup operations.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Releases unmanaged and optionally managed resources.
+        /// </summary>
+        /// <param name="disposing">
+        /// true to release both managed and unmanaged resources; false to release only unmanaged resources.
+        /// </param>
+        protected virtual void Dispose(bool disposing){
+            if (disposed)
+            {
+                return;
+            }
+            if(disposing)
+            {
+                if (_clientStream != null){
+                    _clientStream.Close();
+                    _clientStream.Dispose();
+                }
+                if (_socket != null){
+                    _socket.Close();
+                    _socket.Dispose();
+                }
+            }
+            disposed = true;
         }
 
         /// <summary>
@@ -859,7 +944,7 @@ namespace kx
         /// <param name="number">The number of bytes to be written to the client stream.</param>
         protected async Task WriteAsync(byte[] bytes, int number)
         {
-            await _clientStream.WriteAsync(bytes, 0, number).ConfigureAwait(false);
+            await _clientStream.WriteAsync(bytes.AsMemory(0, number)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1902,7 +1987,7 @@ namespace kx
         private async Task wAsync(int i, object x)
         {
             byte[] buffer = Serialize(i, x);
-            await _clientStream.WriteAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+            await _clientStream.WriteAsync(buffer.AsMemory(0, buffer.Length)).ConfigureAwait(false);
         }
 
         private void read(byte[] b)
@@ -1935,7 +2020,7 @@ namespace kx
                 if (k < j)
                 {
                     int i;
-                    if ((i = await _clientStream.ReadAsync(b, k, Math.Min(_maxBufferSize, j - k)).ConfigureAwait(false)) == 0)
+                    if ((i = await _clientStream.ReadAsync(b.AsMemory(k, Math.Min(_maxBufferSize, j - k))).ConfigureAwait(false)) == 0)
                     {
                         break;
                     }
