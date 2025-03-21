@@ -1069,9 +1069,9 @@ namespace kx
             {
                 return n(flip.y[0]);
             }
-            if (x is char[])
+            if (x is char[] carray)
             {
-                return e.GetBytes((char[])x).Length;
+                return e.GetBytes(carray).Length;
             }
             return ((Array)x).Length;
         }
