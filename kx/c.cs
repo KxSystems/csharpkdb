@@ -1250,19 +1250,9 @@ namespace kx
             _writeBuffer[_writePosition++] = (byte)(x ? 1 : 0);
         }
 
-        private bool rb()
-        {
-            return 1 == _readBuffer[_readPosition++];
-        }
-
         private void w(byte x)
         {
             _writeBuffer[_writePosition++] = x;
-        }
-
-        private byte rx()
-        {
-            return _readBuffer[_readPosition++];
         }
 
         private void w(short h)
@@ -1271,28 +1261,10 @@ namespace kx
             _writeBuffer[_writePosition++] = (byte)(h >> 8);
         }
 
-        private short rh()
-        {
-            int x = _readBuffer[_readPosition++];
-            int y = _readBuffer[_readPosition++];
-            return (short)(_isLittleEndian ? ((x & 0xFF) | (y << 8)) : ((x << 8) | (y & 0xFF)));
-        }
-
         private void w(int i)
         {
             w((short)i);
             w((short)(i >> 16));
-        }
-
-        private int ri()
-        {
-            int x = rh();
-            int y = rh();
-            if (!_isLittleEndian)
-            {
-                return (x << 16) | (y & 0xFFFF);
-            }
-            return (x & 0xFFFF) | (y << 16);
         }
 
         private void w(Guid g)
@@ -1308,37 +1280,10 @@ namespace kx
             }
         }
 
-        private Guid rg()
-        {
-            bool oa = _isLittleEndian;
-            _isLittleEndian = false;
-            int j = ri();
-            short h3 = rh();
-            short h2 = rh();
-            _isLittleEndian = oa;
-            byte[] b = new byte[8];
-            for (int i = 0; i < 8; i++)
-            {
-                b[i] = rx();
-            }
-            return new Guid(j, h3, h2, b);
-        }
-
         private void w(long j)
         {
             w((int)j);
             w((int)(j >> 32));
-        }
-
-        private long rj()
-        {
-            int x = ri();
-            int y = ri();
-            if (!_isLittleEndian)
-            {
-                return ((long)x << 32) | (y & uint.MaxValue);
-            }
-            return (x & uint.MaxValue) | ((long)y << 32);
         }
 
         private void w(float e)
@@ -1350,40 +1295,14 @@ namespace kx
             }
         }
 
-        private float re()
-        {
-            if (!_isLittleEndian)
-            {
-                byte c2 = _readBuffer[_readPosition];
-                _readBuffer[_readPosition] = _readBuffer[_readPosition + 3];
-                _readBuffer[_readPosition + 3] = c2;
-                c2 = _readBuffer[_readPosition + 1];
-                _readBuffer[_readPosition + 1] = _readBuffer[_readPosition + 2];
-                _readBuffer[_readPosition + 2] = c2;
-            }
-            float result = BitConverter.ToSingle(_readBuffer, _readPosition);
-            _readPosition += 4;
-            return result;
-        }
-
         private void w(double f)
         {
             w(BitConverter.DoubleToInt64Bits(f));
         }
 
-        private double rf()
-        {
-            return BitConverter.Int64BitsToDouble(rj());
-        }
-
         private void w(char c)
         {
             w((byte)c);
-        }
-
-        private char rc()
-        {
-            return (char)(_readBuffer[_readPosition++] & 0xFF);
         }
 
         private void w(string s)
@@ -1396,26 +1315,9 @@ namespace kx
             _writeBuffer[_writePosition++] = 0;
         }
 
-        private string rs()
-        {
-            int i = _readPosition;
-            while (_readBuffer[_readPosition] != 0)
-            {
-                _readPosition++;
-            }
-            string @string = e.GetString(_readBuffer, i, _readPosition - i);
-            _readPosition++;
-            return @string;
-        }
-
         private void w(Date d)
         {
             w(d.i);
-        }
-
-        private Date rd()
-        {
-            return new Date(ri());
         }
 
         private void w(Minute u)
@@ -1423,29 +1325,14 @@ namespace kx
             w(u.i);
         }
 
-        private Minute ru()
-        {
-            return new Minute(ri());
-        }
-
         private void w(Month m)
         {
             w(m.i);
         }
 
-        private Month rm()
-        {
-            return new Month(ri());
-        }
-
         private void w(Second v)
         {
             w(v.i);
-        }
-
-        private Second rv()
-        {
-            return new Second(ri());
         }
 
         private void w(TimeSpan t)
@@ -1457,10 +1344,9 @@ namespace kx
             w((int)(qn(t) ? KMinInt32 : (t.Ticks / 10000)));
         }
 
-        private TimeSpan rt()
+        private void w(KTimespan t)
         {
-            int i = ri();
-            return new TimeSpan(qn(i) ? KMinInt64 : (10000L * (long)i));
+            w(qn(t) ? KMinInt64 : (t.t.Ticks * 100));
         }
 
         private void w(DateTime p)
@@ -1470,37 +1356,6 @@ namespace kx
                 throw new KException("Timestamp not valid pre kdb+2.6");
             }
             w(qn(p) ? KMinInt64 : (100 * (p.Ticks - Year2000Ticks)));
-        }
-
-        private DateTime rz()
-        {
-            double f = rf();
-            if (!double.IsInfinity(f))
-            {
-                return new DateTime(qn(f) ? 0 : clampDT(10000 * (long)Math.Round(86400000.0 * f) + Year2000Ticks));
-            }
-            if (f >= 0.0)
-            {
-                return KMaxDateTime;
-            }
-            return KMinDateTime;
-        }
-
-        private void w(KTimespan t)
-        {
-            w(qn(t) ? KMinInt64 : (t.t.Ticks * 100));
-        }
-
-        private KTimespan rn()
-        {
-            return new KTimespan(rj());
-        }
-
-        private DateTime rp()
-        {
-            long i = rj();
-            long d = (i < 0) ? ((i + 1) / 100 - 1) : (i / 100);
-            return new DateTime((i == KMinInt64) ? 0 : (Year2000Ticks + d));
         }
 
         private void w(object x)
@@ -1741,6 +1596,157 @@ namespace kx
             }
         }
 
+        private void w(int i, object x)
+        {
+            byte[] buffer = Serialize(i, x);
+            _clientStream.Write(buffer, 0, buffer.Length);
+        }
+        
+        private bool rb()
+        {
+            return 1 == _readBuffer[_readPosition++];
+        }
+
+        private byte rx()
+        {
+            return _readBuffer[_readPosition++];
+        }
+
+        private short rh()
+        {
+            int x = _readBuffer[_readPosition++];
+            int y = _readBuffer[_readPosition++];
+            return (short)(_isLittleEndian ? ((x & 0xFF) | (y << 8)) : ((x << 8) | (y & 0xFF)));
+        }
+
+        private int ri()
+        {
+            int x = rh();
+            int y = rh();
+            if (!_isLittleEndian)
+            {
+                return (x << 16) | (y & 0xFFFF);
+            }
+            return (x & 0xFFFF) | (y << 16);
+        }
+
+        private Guid rg()
+        {
+            bool oa = _isLittleEndian;
+            _isLittleEndian = false;
+            int j = ri();
+            short h3 = rh();
+            short h2 = rh();
+            _isLittleEndian = oa;
+            byte[] b = new byte[8];
+            for (int i = 0; i < 8; i++)
+            {
+                b[i] = rx();
+            }
+            return new Guid(j, h3, h2, b);
+        }
+
+        private long rj()
+        {
+            int x = ri();
+            int y = ri();
+            if (!_isLittleEndian)
+            {
+                return ((long)x << 32) | (y & uint.MaxValue);
+            }
+            return (x & uint.MaxValue) | ((long)y << 32);
+        }
+
+        private float re()
+        {
+            if (!_isLittleEndian)
+            {
+                byte c2 = _readBuffer[_readPosition];
+                _readBuffer[_readPosition] = _readBuffer[_readPosition + 3];
+                _readBuffer[_readPosition + 3] = c2;
+                c2 = _readBuffer[_readPosition + 1];
+                _readBuffer[_readPosition + 1] = _readBuffer[_readPosition + 2];
+                _readBuffer[_readPosition + 2] = c2;
+            }
+            float result = BitConverter.ToSingle(_readBuffer, _readPosition);
+            _readPosition += 4;
+            return result;
+        }
+
+        private double rf()
+        {
+            return BitConverter.Int64BitsToDouble(rj());
+        }
+
+        private char rc()
+        {
+            return (char)(_readBuffer[_readPosition++] & 0xFF);
+        }
+
+        private string rs()
+        {
+            int i = _readPosition;
+            while (_readBuffer[_readPosition] != 0)
+            {
+                _readPosition++;
+            }
+            string @string = e.GetString(_readBuffer, i, _readPosition - i);
+            _readPosition++;
+            return @string;
+        }
+
+        private Date rd()
+        {
+            return new Date(ri());
+        }
+
+        private Minute ru()
+        {
+            return new Minute(ri());
+        }
+
+        private Month rm()
+        {
+            return new Month(ri());
+        }
+
+        private Second rv()
+        {
+            return new Second(ri());
+        }
+
+        private TimeSpan rt()
+        {
+            int i = ri();
+            return new TimeSpan(qn(i) ? KMinInt64 : (10000L * (long)i));
+        }
+
+        private DateTime rz()
+        {
+            double f = rf();
+            if (!double.IsInfinity(f))
+            {
+                return new DateTime(qn(f) ? 0 : clampDT(10000 * (long)Math.Round(86400000.0 * f) + Year2000Ticks));
+            }
+            if (f >= 0.0)
+            {
+                return KMaxDateTime;
+            }
+            return KMinDateTime;
+        }
+
+        private KTimespan rn()
+        {
+            return new KTimespan(rj());
+        }
+
+        private DateTime rp()
+        {
+            long i = rj();
+            long d = (i < 0) ? ((i + 1) / 100 - 1) : (i / 100);
+            return new DateTime((i == KMinInt64) ? 0 : (Year2000Ticks + d));
+        }
+
         private object r()
         {
             int i = 0;
@@ -1978,12 +1984,6 @@ namespace kx
                         }
                     }
             }
-        }
-
-        private void w(int i, object x)
-        {
-            byte[] buffer = Serialize(i, x);
-            _clientStream.Write(buffer, 0, buffer.Length);
         }
 
         private async Task wAsync(int i, object x)
