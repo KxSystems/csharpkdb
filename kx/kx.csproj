@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <Title>CSharpKDB</Title>
     <PackageId>CSharpKDB</PackageId>
     <Description>Provides functionality for .NET applications to interface with a KDB+ process.</Description>

@@ -10,15 +10,17 @@ namespace QueryResponseDemo
 
         static void Main()
         {
-            string host = "localhost";
-            int port = 5001;
+            string host = "/tmp/kx.5001";
+            //int port = 5001;
             string usernamePassword = $"{Environment.UserName}:mypassword";
 
             c connection = null;
             try
             {
-                Logger.Info($"Connecting to {host}:{port}");
-                connection = new c(host, port, usernamePassword);
+                //Logger.Info($"Connecting to {host}:{port}");
+                connection = new c(host, usernamePassword);
+
+                connection.ksAsync("2+3");
 
                 object result = connection.k("2+3");
                 Logger.Info($"Result of 2+3:{result}");
@@ -86,6 +88,7 @@ namespace QueryResponseDemo
                 if(connection != null)
                 {
                     connection.Close();
+                    connection.Dispose();
                 }
             }
         }

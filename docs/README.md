@@ -4,6 +4,10 @@
 The C\# interface to kdb+ is implemented in the `c` class, which implements the protocol to interact with a kdb+ server. 
 The interface closely resembles that for [interfacing with Java](https://github.com/javakdb).
 
+## Connecting to kdb+
+
+### Connecting using TCP
+
 Instances may be constructed with one of the following constructors:
 
 signature                                                     | notes                                                                                                                                    
@@ -11,10 +15,21 @@ signature                                                     | notes
 `public c(string host, int port, string usernameAndPassword)` | Throws `Exception("access")` if access is denied by the q server. The username and password should be of the format username:password 
 `public c(string host, int port)`                             | Throws `Exception("access")` if access is denied by the q server. Uses `Environment.!UserName` as the login name and password             
 
-
 It is important to close the `c` object explicitly, via the `Close` method, when we are finished with the connection to a kdb+ server.
 
 The class provides a number of other features explored in the following sections.
+
+### Connecting using UDS (Unix Domain Sockets)
+
+As an alternative to the standard TCP connection, kdb+ can use UDS. See [here](https://code.kx.com/q/basics/listening-port/#unix-domain-socket) for details.
+
+UDS requires support on the underlying Operating System and the client/server residing on same machine.
+
+Example of client connection when kdb+ listening on 5001:
+
+```c#
+connection = new c("/tmp/kx.5001","username:password");
+```
 
 ## Maximum Message Size
 
