@@ -445,18 +445,6 @@ namespace kx
         }
 
         /// <summary>
-        /// Reads an incoming message from the remote KDB+ process.
-        /// </summary>
-        /// <returns>
-        /// Deserialised response to request.
-        /// </returns>
-        public object k()
-        {
-            k0();
-            return r();
-        }
-
-        /// <summary>
         /// Reads an incoming message from the remote KDB+ process async.
         /// </summary>
         /// <returns>
@@ -468,6 +456,18 @@ namespace kx
             return r();
         }
 
+        /// <summary>
+        /// Reads an incoming message from the remote KDB+ process.
+        /// </summary>
+        /// <returns>
+        /// Deserialised response to request.
+        /// </returns>
+        public object k()
+        {
+            k0();
+            return r();
+        }
+        
         /// <summary>
         /// Sends a sync message request to the remote KDB+ process.
         /// </summary>
