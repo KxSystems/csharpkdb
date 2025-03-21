@@ -467,7 +467,7 @@ namespace kx
             k0();
             return r();
         }
-        
+
         /// <summary>
         /// Sends a sync message request to the remote KDB+ process.
         /// </summary>
@@ -633,31 +633,9 @@ namespace kx
         /// Sends an async message to the remote KDB+ process with a specified object parameter.
         /// </summary>
         /// <param name="x">The object parameter.</param>
-        public void ks(object x)
-        {
-            w(0, x);
-        }
-
-        /// <summary>
-        /// Sends an async message to the remote KDB+ process with a specified object parameter.
-        /// </summary>
-        /// <param name="x">The object parameter.</param>
         public async Task ksAsync(object x)
         {
             await wAsync(0, x).ConfigureAwait(false);
-        }
-        /// <summary>
-        /// Sends an async message to the remote KDB+ process with a specified expression.
-        /// </summary>
-        /// <param name="s">The expression to send.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
-        public void ks(string s)
-        {
-            if (s == null)
-            {
-                throw new ArgumentNullException(nameof(s));
-            }
-            w(0, s.ToCharArray());
         }
 
         /// <summary>
@@ -673,6 +651,30 @@ namespace kx
             }
             await wAsync(0, s.ToCharArray()).ConfigureAwait(false);
         }
+
+        /// <summary>
+        /// Sends an async message to the remote KDB+ process with a specified object parameter.
+        /// </summary>
+        /// <param name="x">The object parameter.</param>
+        public void ks(object x)
+        {
+            w(0, x);
+        }
+
+        /// <summary>
+        /// Sends an async message to the remote KDB+ process with a specified expression.
+        /// </summary>
+        /// <param name="s">The expression to send.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
+        public void ks(string s)
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+            w(0, s.ToCharArray());
+        }
+
         /// <summary>
         /// Sends an async message to the remote KDB+ process with a specified expression 
         /// and object parameter.
