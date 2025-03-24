@@ -1,6 +1,7 @@
   
 #!/bin/sh
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+    java -version
     echo "Sonar requires updated Java for Ubuntu 16.04.7, updating repos"
     sudo apt-get update
     sudo apt-get install -y software-properties-common
@@ -10,6 +11,8 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
     echo oracle-java17-installer shared/accepted-oracle-license-v1-3 select true | sudo /usr/bin/debconf-set-selections
     echo "Install Java17"
     sudo apt install -y oracle-java17-installer --install-recommends
+    sudo apt install oracle-java17-set-default
+    java -version
 fi
 echo "Starting sonar install..."
 wget -O sonar.zip https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/5.0.4.24009/sonar-scanner-msbuild-5.0.4.24009-netcoreapp3.0.zip
