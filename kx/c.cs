@@ -16,8 +16,14 @@ namespace kx
     /// This class is essentially a serializer/deserializer of .NET types 
     /// to/from the KDB+ IPC wire format, enabling remote method invocation in KDB+ via TCP/IP.
     /// </remarks>
-    public class c : TcpClient
+    public class c : IDisposable
     {
+        private readonly Socket _socket;
+
+        private readonly Stream _clientStream;
+
+        private bool disposed;
+
         private const int DefaultMaxBufferSize = 65536;
 
         private const long Year2000Ticks = 630822816000000000L;
@@ -46,10 +52,10 @@ namespace kx
             NullDouble,
             ' ',
             "",
-            new DateTime(0L),
+            new DateTime(0L,DateTimeKind.Unspecified),
             new Month(KMinInt32),
             new Date(KMinInt32),
-            new DateTime(0L),
+            new DateTime(0L,DateTimeKind.Unspecified),
             new KTimespan(KMinInt64),
             new Minute(KMinInt32),
             new Second(KMinInt32),
@@ -82,8 +88,6 @@ namespace kx
             4,
             4
         };
-
-        private readonly Stream _clientStream;
 
         private readonly int _maxBufferSize;
 
@@ -154,6 +158,60 @@ namespace kx
         {
         }
 
+        private c(string host,
+            int port,
+            string userPassword,
+            int maxBufferSize,
+            bool useTLS,
+            bool uds)
+        {
+            if (host == null)
+            {
+                throw new ArgumentNullException(nameof(host),
+                    $"Unable to initialise c. {nameof(host)} parameter cannot be null");
+            }
+            if (!uds && (port < 0 || port > 65535))
+            {
+                throw new ArgumentOutOfRangeException(nameof(port),
+                    $"Unable to initialise c. {nameof(port)} parameter must be between MinPort and MaxPort");
+            }
+            if (userPassword == null)
+            {
+                throw new ArgumentNullException(nameof(userPassword),
+                    $"Unable to initialise c. {nameof(userPassword)} parameter cannot be null");
+            }
+
+            _maxBufferSize = maxBufferSize;
+            if(uds)
+            {
+                _socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                _socket.Connect(new UnixDomainSocketEndPoint(host));
+                _isLoopback = true;
+            }
+            else
+            {
+                _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                _socket.Connect(host, port);
+                _isLoopback = _socket.RemoteEndPoint is IPEndPoint &&
+                    IPAddress.IsLoopback((_socket.RemoteEndPoint as IPEndPoint).Address);
+            }
+            _clientStream = new NetworkStream(_socket);
+            if (useTLS)
+            {
+                _clientStream = new SslStream(_clientStream, false);
+                ((SslStream)_clientStream).AuthenticateAsClient(host);
+            }
+            _writeBuffer = new byte[2 + userPassword.Length];
+            _writePosition = 0;
+            w(userPassword + "\u0003");
+            _clientStream.Write(_writeBuffer, 0, _writePosition);
+            if (_clientStream.Read(_writeBuffer, 0, 1) != 1)
+            {
+                throw new KException("access");
+            }
+            _versionNumber = Math.Min(_writeBuffer[0], (byte)3);
+        }
+
         /// <summary>
         /// Initialises a new instance of <see cref="c" /> with a specified host and port 
         /// to connect to, a username/password for authentication, an optional maximum buffersize and
@@ -174,42 +232,28 @@ namespace kx
             string userPassword,
             int maxBufferSize = DefaultMaxBufferSize,
             bool useTLS = false)
+            : this(host, port, userPassword, maxBufferSize, useTLS, false)
         {
-            if (host == null)
-            {
-                throw new ArgumentNullException(nameof(host),
-                    $"Unable to initialise c. {nameof(host)} parameter cannot be null");
-            }
-            if (port < 0 || port > 65535)
-            {
-                throw new ArgumentOutOfRangeException(nameof(port),
-                    $"Unable to initialise c. {nameof(port)} parameter must be between MinPort and MaxPort");
-            }
-            if (userPassword == null)
-            {
-                throw new ArgumentNullException(nameof(userPassword),
-                    $"Unable to initialise c. {nameof(userPassword)} parameter cannot be null");
-            }
+        }
 
-            _maxBufferSize = maxBufferSize;
-            Connect(host, port);
-            _clientStream = GetStream();
-            if (useTLS)
-            {
-                _clientStream = new SslStream(_clientStream, false);
-                ((SslStream)_clientStream).AuthenticateAsClient(host);
-            }
-            _writeBuffer = new byte[2 + userPassword.Length];
-            _writePosition = 0;
-            w(userPassword + "\u0003");
-            _clientStream.Write(_writeBuffer, 0, _writePosition);
-            if (_clientStream.Read(_writeBuffer, 0, 1) != 1)
-            {
-                throw new KException("access");
-            }
-            _versionNumber = Math.Min(_writeBuffer[0], (byte)3);
-            _isLoopback = Client.RemoteEndPoint is IPEndPoint &&
-                IPAddress.IsLoopback((Client.RemoteEndPoint as IPEndPoint).Address);
+        /// <summary>
+        /// Initialises a new instance of <see cref="c" /> using a Unix Domain Socket connection. 
+        /// The maximum transmissible message size is 2GB due to a limitation with the maximum array size in C sharp, 
+        /// therefore <a href="https://code.kx.com/q/basics/ipc/#handshake">capability 3</a> will be used within the kdb+ handshake.
+        /// </summary>
+        /// <param name="file">uds file e.g. "/tmp/kx.5010" is the default with kdb+ listening on port 5010</param>
+        /// <param name="userPassword">The username and passsword, as "username:password" for remote authorisation.</param>
+        /// <param name="maxBufferSize">The maximum buffer size, default is 65536.</param>
+        /// <param name="useTLS">A boolean flag indicating whether or not TLS authentication is enabled, default is false.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="file" /> or <paramref name="userPassword" /> was null.</exception>
+        /// <exception cref="KException">Unable to connect to KDB+ process, access denied or process unavailable.</exception>
+        /// <exception cref="PlatformNotSupportedException">The current OS does not support Unix Domain Sockets</exception>
+        public c(string file,
+            string userPassword,
+            int maxBufferSize = DefaultMaxBufferSize,
+            bool useTLS = false)
+            : this(file, 0, userPassword, maxBufferSize, useTLS, true)
+        {
         }
 
         /// <summary>
@@ -347,28 +391,57 @@ namespace kx
         public static Encoding e { get; set; } = Encoding.ASCII;
 
         /// <summary>
-        /// Disposes this <see cref="kx.c"/> instance and requests that the underlying
-        /// stream and TCP connection be closed.
+        /// Requests that the underlying stream and TCP connection be closed.
         /// </summary>
-        public new void Close()
+        public void Close()
         {
             if (_clientStream != null)
             {
                 _clientStream.Close();
             }
-            base.Close();
+            _socket.Close();
         }
 
         /// <summary>
-        /// Reads an incoming message from the remote KDB+ process.
+        /// Destructor
         /// </summary>
-        /// <returns>
-        /// Deserialised response to request.
-        /// </returns>
-        public object k()
+        ~c()
         {
-            k0();
-            return r();
+            Dispose(false);
+        }
+
+        /// <summary>
+        /// Releases unmanaged resources and performs other cleanup operations.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Releases unmanaged and optionally managed resources.
+        /// </summary>
+        /// <param name="disposing">
+        /// true to release both managed and unmanaged resources; false to release only unmanaged resources.
+        /// </param>
+        protected virtual void Dispose(bool disposing){
+            if (disposed)
+            {
+                return;
+            }
+            if(disposing)
+            {
+                if (_clientStream != null){
+                    _clientStream.Close();
+                    _clientStream.Dispose();
+                }
+                if (_socket != null){
+                    _socket.Close();
+                    _socket.Dispose();
+                }
+            }
+            disposed = true;
         }
 
         /// <summary>
@@ -380,6 +453,18 @@ namespace kx
         public async Task<object> kAsync()
         {
             await k0Async().ConfigureAwait(false);
+            return r();
+        }
+
+        /// <summary>
+        /// Reads an incoming message from the remote KDB+ process.
+        /// </summary>
+        /// <returns>
+        /// Deserialised response to request.
+        /// </returns>
+        public object k()
+        {
+            k0();
             return r();
         }
 
@@ -548,31 +633,9 @@ namespace kx
         /// Sends an async message to the remote KDB+ process with a specified object parameter.
         /// </summary>
         /// <param name="x">The object parameter.</param>
-        public void ks(object x)
-        {
-            w(0, x);
-        }
-
-        /// <summary>
-        /// Sends an async message to the remote KDB+ process with a specified object parameter.
-        /// </summary>
-        /// <param name="x">The object parameter.</param>
         public async Task ksAsync(object x)
         {
             await wAsync(0, x).ConfigureAwait(false);
-        }
-        /// <summary>
-        /// Sends an async message to the remote KDB+ process with a specified expression.
-        /// </summary>
-        /// <param name="s">The expression to send.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
-        public void ks(string s)
-        {
-            if (s == null)
-            {
-                throw new ArgumentNullException(nameof(s));
-            }
-            w(0, s.ToCharArray());
         }
 
         /// <summary>
@@ -587,27 +650,6 @@ namespace kx
                 throw new ArgumentNullException(nameof(s));
             }
             await wAsync(0, s.ToCharArray()).ConfigureAwait(false);
-        }
-        /// <summary>
-        /// Sends an async message to the remote KDB+ process with a specified expression 
-        /// and object parameter.
-        /// </summary>
-        /// <param name="s">The expression to send.</param>
-        /// <param name="x">The object parameter to send.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
-        public void ks(string s, object x)
-        {
-            if (s == null)
-            {
-                throw new ArgumentNullException(nameof(s));
-            }
-            object[] array = new object[]
-            {
-                s.ToCharArray(),
-                x
-            };
-
-            w(0, array);
         }
 
         /// <summary>
@@ -640,30 +682,6 @@ namespace kx
         /// <param name="x">The first object parameter to send.</param>
         /// <param name="y">The second object parameter to send.</param>
         /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
-        public void ks(string s, object x, object y)
-        {
-            if (s == null)
-            {
-                throw new ArgumentNullException(nameof(s));
-            }
-            object[] array = new object[]
-            {
-                s.ToCharArray(),
-                x,
-                y
-            };
-
-            w(0, array);
-        }
-
-        /// <summary>
-        /// Sends an async message to the remote KDB+ process with a specified expression 
-        /// and object parameters.
-        /// </summary>
-        /// <param name="s">The expression to send.</param>
-        /// <param name="x">The first object parameter to send.</param>
-        /// <param name="y">The second object parameter to send.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
         public async Task ksAsync(string s, object x, object y)
         {
             if (s == null)
@@ -678,6 +696,75 @@ namespace kx
             };
 
             await wAsync(0, array).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Sends an async message to the remote KDB+ process with a specified object parameter.
+        /// </summary>
+        /// <param name="x">The object parameter.</param>
+        public void ks(object x)
+        {
+            w(0, x);
+        }
+
+        /// <summary>
+        /// Sends an async message to the remote KDB+ process with a specified expression.
+        /// </summary>
+        /// <param name="s">The expression to send.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
+        public void ks(string s)
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+            w(0, s.ToCharArray());
+        }
+
+        /// <summary>
+        /// Sends an async message to the remote KDB+ process with a specified expression 
+        /// and object parameter.
+        /// </summary>
+        /// <param name="s">The expression to send.</param>
+        /// <param name="x">The object parameter to send.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
+        public void ks(string s, object x)
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+            object[] array = new object[]
+            {
+                s.ToCharArray(),
+                x
+            };
+
+            w(0, array);
+        }
+
+        /// <summary>
+        /// Sends an async message to the remote KDB+ process with a specified expression 
+        /// and object parameters.
+        /// </summary>
+        /// <param name="s">The expression to send.</param>
+        /// <param name="x">The first object parameter to send.</param>
+        /// <param name="y">The second object parameter to send.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
+        public void ks(string s, object x, object y)
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+            object[] array = new object[]
+            {
+                s.ToCharArray(),
+                x,
+                y
+            };
+
+            w(0, array);
         }
 
         /// <summary>
@@ -859,7 +946,7 @@ namespace kx
         /// <param name="number">The number of bytes to be written to the client stream.</param>
         protected async Task WriteAsync(byte[] bytes, int number)
         {
-            await _clientStream.WriteAsync(bytes, 0, number).ConfigureAwait(false);
+            await _clientStream.WriteAsync(bytes.AsMemory(0, number)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -982,9 +1069,9 @@ namespace kx
             {
                 return n(flip.y[0]);
             }
-            if (x is char[])
+            if (x is char[] carray)
             {
-                return e.GetBytes((char[])x).Length;
+                return e.GetBytes(carray).Length;
             }
             return ((Array)x).Length;
         }
@@ -1163,19 +1250,9 @@ namespace kx
             _writeBuffer[_writePosition++] = (byte)(x ? 1 : 0);
         }
 
-        private bool rb()
-        {
-            return 1 == _readBuffer[_readPosition++];
-        }
-
         private void w(byte x)
         {
             _writeBuffer[_writePosition++] = x;
-        }
-
-        private byte rx()
-        {
-            return _readBuffer[_readPosition++];
         }
 
         private void w(short h)
@@ -1184,28 +1261,10 @@ namespace kx
             _writeBuffer[_writePosition++] = (byte)(h >> 8);
         }
 
-        private short rh()
-        {
-            int x = _readBuffer[_readPosition++];
-            int y = _readBuffer[_readPosition++];
-            return (short)(_isLittleEndian ? ((x & 0xFF) | (y << 8)) : ((x << 8) | (y & 0xFF)));
-        }
-
         private void w(int i)
         {
             w((short)i);
             w((short)(i >> 16));
-        }
-
-        private int ri()
-        {
-            int x = rh();
-            int y = rh();
-            if (!_isLittleEndian)
-            {
-                return (x << 16) | (y & 0xFFFF);
-            }
-            return (x & 0xFFFF) | (y << 16);
         }
 
         private void w(Guid g)
@@ -1221,37 +1280,10 @@ namespace kx
             }
         }
 
-        private Guid rg()
-        {
-            bool oa = _isLittleEndian;
-            _isLittleEndian = false;
-            int j = ri();
-            short h3 = rh();
-            short h2 = rh();
-            _isLittleEndian = oa;
-            byte[] b = new byte[8];
-            for (int i = 0; i < 8; i++)
-            {
-                b[i] = rx();
-            }
-            return new Guid(j, h3, h2, b);
-        }
-
         private void w(long j)
         {
             w((int)j);
             w((int)(j >> 32));
-        }
-
-        private long rj()
-        {
-            int x = ri();
-            int y = ri();
-            if (!_isLittleEndian)
-            {
-                return ((long)x << 32) | (y & uint.MaxValue);
-            }
-            return (x & uint.MaxValue) | ((long)y << 32);
         }
 
         private void w(float e)
@@ -1263,40 +1295,14 @@ namespace kx
             }
         }
 
-        private float re()
-        {
-            if (!_isLittleEndian)
-            {
-                byte c2 = _readBuffer[_readPosition];
-                _readBuffer[_readPosition] = _readBuffer[_readPosition + 3];
-                _readBuffer[_readPosition + 3] = c2;
-                c2 = _readBuffer[_readPosition + 1];
-                _readBuffer[_readPosition + 1] = _readBuffer[_readPosition + 2];
-                _readBuffer[_readPosition + 2] = c2;
-            }
-            float result = BitConverter.ToSingle(_readBuffer, _readPosition);
-            _readPosition += 4;
-            return result;
-        }
-
         private void w(double f)
         {
             w(BitConverter.DoubleToInt64Bits(f));
         }
 
-        private double rf()
-        {
-            return BitConverter.Int64BitsToDouble(rj());
-        }
-
         private void w(char c)
         {
             w((byte)c);
-        }
-
-        private char rc()
-        {
-            return (char)(_readBuffer[_readPosition++] & 0xFF);
         }
 
         private void w(string s)
@@ -1309,26 +1315,9 @@ namespace kx
             _writeBuffer[_writePosition++] = 0;
         }
 
-        private string rs()
-        {
-            int i = _readPosition;
-            while (_readBuffer[_readPosition] != 0)
-            {
-                _readPosition++;
-            }
-            string @string = e.GetString(_readBuffer, i, _readPosition - i);
-            _readPosition++;
-            return @string;
-        }
-
         private void w(Date d)
         {
             w(d.i);
-        }
-
-        private Date rd()
-        {
-            return new Date(ri());
         }
 
         private void w(Minute u)
@@ -1336,29 +1325,14 @@ namespace kx
             w(u.i);
         }
 
-        private Minute ru()
-        {
-            return new Minute(ri());
-        }
-
         private void w(Month m)
         {
             w(m.i);
         }
 
-        private Month rm()
-        {
-            return new Month(ri());
-        }
-
         private void w(Second v)
         {
             w(v.i);
-        }
-
-        private Second rv()
-        {
-            return new Second(ri());
         }
 
         private void w(TimeSpan t)
@@ -1370,10 +1344,9 @@ namespace kx
             w((int)(qn(t) ? KMinInt32 : (t.Ticks / 10000)));
         }
 
-        private TimeSpan rt()
+        private void w(KTimespan t)
         {
-            int i = ri();
-            return new TimeSpan(qn(i) ? KMinInt64 : (10000L * (long)i));
+            w(qn(t) ? KMinInt64 : (t.t.Ticks * 100));
         }
 
         private void w(DateTime p)
@@ -1383,37 +1356,6 @@ namespace kx
                 throw new KException("Timestamp not valid pre kdb+2.6");
             }
             w(qn(p) ? KMinInt64 : (100 * (p.Ticks - Year2000Ticks)));
-        }
-
-        private DateTime rz()
-        {
-            double f = rf();
-            if (!double.IsInfinity(f))
-            {
-                return new DateTime(qn(f) ? 0 : clampDT(10000 * (long)Math.Round(86400000.0 * f) + Year2000Ticks));
-            }
-            if (f >= 0.0)
-            {
-                return KMaxDateTime;
-            }
-            return KMinDateTime;
-        }
-
-        private void w(KTimespan t)
-        {
-            w(qn(t) ? KMinInt64 : (t.t.Ticks * 100));
-        }
-
-        private KTimespan rn()
-        {
-            return new KTimespan(rj());
-        }
-
-        private DateTime rp()
-        {
-            long i = rj();
-            long d = (i < 0) ? ((i + 1) / 100 - 1) : (i / 100);
-            return new DateTime((i == KMinInt64) ? 0 : (Year2000Ticks + d));
         }
 
         private void w(object x)
@@ -1652,6 +1594,157 @@ namespace kx
                         break;
                     }
             }
+        }
+
+        private void w(int i, object x)
+        {
+            byte[] buffer = Serialize(i, x);
+            _clientStream.Write(buffer, 0, buffer.Length);
+        }
+        
+        private bool rb()
+        {
+            return 1 == _readBuffer[_readPosition++];
+        }
+
+        private byte rx()
+        {
+            return _readBuffer[_readPosition++];
+        }
+
+        private short rh()
+        {
+            int x = _readBuffer[_readPosition++];
+            int y = _readBuffer[_readPosition++];
+            return (short)(_isLittleEndian ? ((x & 0xFF) | (y << 8)) : ((x << 8) | (y & 0xFF)));
+        }
+
+        private int ri()
+        {
+            int x = rh();
+            int y = rh();
+            if (!_isLittleEndian)
+            {
+                return (x << 16) | (y & 0xFFFF);
+            }
+            return (x & 0xFFFF) | (y << 16);
+        }
+
+        private Guid rg()
+        {
+            bool oa = _isLittleEndian;
+            _isLittleEndian = false;
+            int j = ri();
+            short h3 = rh();
+            short h2 = rh();
+            _isLittleEndian = oa;
+            byte[] b = new byte[8];
+            for (int i = 0; i < 8; i++)
+            {
+                b[i] = rx();
+            }
+            return new Guid(j, h3, h2, b);
+        }
+
+        private long rj()
+        {
+            int x = ri();
+            int y = ri();
+            if (!_isLittleEndian)
+            {
+                return ((long)x << 32) | (y & uint.MaxValue);
+            }
+            return (x & uint.MaxValue) | ((long)y << 32);
+        }
+
+        private float re()
+        {
+            if (!_isLittleEndian)
+            {
+                byte c2 = _readBuffer[_readPosition];
+                _readBuffer[_readPosition] = _readBuffer[_readPosition + 3];
+                _readBuffer[_readPosition + 3] = c2;
+                c2 = _readBuffer[_readPosition + 1];
+                _readBuffer[_readPosition + 1] = _readBuffer[_readPosition + 2];
+                _readBuffer[_readPosition + 2] = c2;
+            }
+            float result = BitConverter.ToSingle(_readBuffer, _readPosition);
+            _readPosition += 4;
+            return result;
+        }
+
+        private double rf()
+        {
+            return BitConverter.Int64BitsToDouble(rj());
+        }
+
+        private char rc()
+        {
+            return (char)(_readBuffer[_readPosition++] & 0xFF);
+        }
+
+        private string rs()
+        {
+            int i = _readPosition;
+            while (_readBuffer[_readPosition] != 0)
+            {
+                _readPosition++;
+            }
+            string @string = e.GetString(_readBuffer, i, _readPosition - i);
+            _readPosition++;
+            return @string;
+        }
+
+        private Date rd()
+        {
+            return new Date(ri());
+        }
+
+        private Minute ru()
+        {
+            return new Minute(ri());
+        }
+
+        private Month rm()
+        {
+            return new Month(ri());
+        }
+
+        private Second rv()
+        {
+            return new Second(ri());
+        }
+
+        private TimeSpan rt()
+        {
+            int i = ri();
+            return new TimeSpan(qn(i) ? KMinInt64 : (10000L * (long)i));
+        }
+
+        private DateTime rz()
+        {
+            double f = rf();
+            if (!double.IsInfinity(f))
+            {
+                return new DateTime(qn(f) ? 0 : clampDT(10000 * (long)Math.Round(86400000.0 * f) + Year2000Ticks),DateTimeKind.Unspecified);
+            }
+            if (f >= 0.0)
+            {
+                return KMaxDateTime;
+            }
+            return KMinDateTime;
+        }
+
+        private KTimespan rn()
+        {
+            return new KTimespan(rj());
+        }
+
+        private DateTime rp()
+        {
+            long i = rj();
+            long d = (i < 0) ? ((i + 1) / 100 - 1) : (i / 100);
+            return new DateTime((i == KMinInt64) ? 0 : (Year2000Ticks + d),DateTimeKind.Unspecified);
         }
 
         private object r()
@@ -1893,16 +1986,10 @@ namespace kx
             }
         }
 
-        private void w(int i, object x)
-        {
-            byte[] buffer = Serialize(i, x);
-            _clientStream.Write(buffer, 0, buffer.Length);
-        }
-
         private async Task wAsync(int i, object x)
         {
             byte[] buffer = Serialize(i, x);
-            await _clientStream.WriteAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+            await _clientStream.WriteAsync(buffer.AsMemory(0, buffer.Length)).ConfigureAwait(false);
         }
 
         private void read(byte[] b)
@@ -1935,7 +2022,7 @@ namespace kx
                 if (k < j)
                 {
                     int i;
-                    if ((i = await _clientStream.ReadAsync(b, k, Math.Min(_maxBufferSize, j - k)).ConfigureAwait(false)) == 0)
+                    if ((i = await _clientStream.ReadAsync(b.AsMemory(k, Math.Min(_maxBufferSize, j - k))).ConfigureAwait(false)) == 0)
                     {
                         break;
                     }
@@ -2214,7 +2301,7 @@ namespace kx
                 {
                     if (i != int.MaxValue)
                     {
-                        return new DateTime((i == KMinInt32) ? 0 : clampDT(864000000000L * i + Year2000Ticks));
+                        return new DateTime((i == KMinInt32) ? 0 : clampDT(864000000000L * i + Year2000Ticks),DateTimeKind.Unspecified);
                     }
                     return KMaxDateTime;
                 }
