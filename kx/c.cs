@@ -52,10 +52,10 @@ namespace kx
             NullDouble,
             ' ',
             "",
-            new DateTime(0L),
+            new DateTime(0L,DateTimeKind.Unspecified),
             new Month(KMinInt32),
             new Date(KMinInt32),
-            new DateTime(0L),
+            new DateTime(0L,DateTimeKind.Unspecified),
             new KTimespan(KMinInt64),
             new Minute(KMinInt32),
             new Second(KMinInt32),
@@ -1726,7 +1726,7 @@ namespace kx
             double f = rf();
             if (!double.IsInfinity(f))
             {
-                return new DateTime(qn(f) ? 0 : clampDT(10000 * (long)Math.Round(86400000.0 * f) + Year2000Ticks));
+                return new DateTime(qn(f) ? 0 : clampDT(10000 * (long)Math.Round(86400000.0 * f) + Year2000Ticks),DateTimeKind.Unspecified);
             }
             if (f >= 0.0)
             {
@@ -1744,7 +1744,7 @@ namespace kx
         {
             long i = rj();
             long d = (i < 0) ? ((i + 1) / 100 - 1) : (i / 100);
-            return new DateTime((i == KMinInt64) ? 0 : (Year2000Ticks + d));
+            return new DateTime((i == KMinInt64) ? 0 : (Year2000Ticks + d),DateTimeKind.Unspecified);
         }
 
         private object r()
@@ -2301,7 +2301,7 @@ namespace kx
                 {
                     if (i != int.MaxValue)
                     {
-                        return new DateTime((i == KMinInt32) ? 0 : clampDT(864000000000L * i + Year2000Ticks));
+                        return new DateTime((i == KMinInt32) ? 0 : clampDT(864000000000L * i + Year2000Ticks),DateTimeKind.Unspecified);
                     }
                     return KMaxDateTime;
                 }
