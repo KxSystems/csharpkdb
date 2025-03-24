@@ -7,7 +7,7 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
     sudo add-apt-repository -y ppa:linuxuprising/java
     sudo apt-get update
     echo "Set properties to agree to Java17 license prompts"
-    sudo echo oracle-java17-installer shared/accepted-oracle-license-v1-3 select true | /usr/bin/debconf-set-selections
+    echo oracle-java17-installer shared/accepted-oracle-license-v1-3 select true | sudo /usr/bin/debconf-set-selections
     echo "Install Java17"
     sudo apt install -y oracle-java17-installer --install-recommends
 fi
