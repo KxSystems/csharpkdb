@@ -18,7 +18,6 @@ Developers can run the tests
  1) Restore any requried nuget packages
 
  ``` bat
-  REM Need to ensure nuget dependencies have been loaded
   dotnet restore .\CSharpKdb.sln 
   ```
 
@@ -26,7 +25,6 @@ Developers can run the tests
  Note : Build should be done against optimised Release build for accuracy
  
  ``` bat
-  REM AnyCpu build
   dotnet msbuild /t:"kx_Benchmark_Test" /p:Configuration=Release /p:Platform="Any CPU"  .\CSharpKdb.sln
   ```
 
@@ -35,15 +33,13 @@ Developers can run the tests
  *i)* Run all benchmarks
  
  ``` bat
- REM run tests
- dotnet .\kx.Benchmark.Test\bin\Release\netcoreapp3.1\kx.Benchmark.Test.dll -f *
+ dotnet .\kx.Benchmark.Test\bin\Release\netcoreapp3.1\kx.Benchmark.Test.dll -f '*'
  ```
 
- *ii)* Run a specific set of benchmarks
+ *ii)* Run an individual benchmark
 
  ``` bat
- REM run tests
- dotnet .\kx.Benchmark.Test\bin\Release\netcoreapp3.1\kx.Benchmark.Test.dll -f *
+ dotnet .\kx.Benchmark.Test\bin\Release\netcoreapp3.1\kx.Benchmark.Test.dll
  ```
 
  4) Provided tests complete successfully you should see the following output and a BenchmarkDotNet.Artifacts folder containing the report files.
