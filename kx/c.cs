@@ -93,29 +93,6 @@ namespace kx
 
         private readonly int _versionNumber;
 
-        /// <summary>
-        /// Used to convert a .NET <see cref="Guid"/> into a KDB+ compatible id.
-        /// </summary>
-        private readonly byte[] _guidInterProcess = new byte[16]
-        {
-            3,
-            2,
-            1,
-            0,
-            5,
-            4,
-            7,
-            6,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15
-        };
-
         private readonly bool _isLoopback;
 
         /// <summary>
@@ -1269,15 +1246,19 @@ namespace kx
 
         private void w(Guid g)
         {
-            byte[] b = g.ToByteArray();
             if (_versionNumber < 3)
             {
                 throw new KException("Guid not valid pre kdb+3.0");
             }
-            for (int i = 0; i < b.Length; i++)
-            {
-                w(b[_guidInterProcess[i]]);
-            }
+            Span<byte> dest = _writeBuffer.AsSpan(_writePosition, 16);
+            if (!g.TryWriteBytes(dest))
+                throw new InvalidOperationException();
+            // Now permute to match existing on-wire format
+            (dest[0], dest[3]) = (dest[3], dest[0]);
+            (dest[1], dest[2]) = (dest[2], dest[1]);
+            (dest[4], dest[5]) = (dest[5], dest[4]);
+            (dest[6], dest[7]) = (dest[7], dest[6]);
+            _writePosition += 16;
         }
 
         private void w(long j)
