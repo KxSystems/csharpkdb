@@ -1288,11 +1288,9 @@ namespace kx
 
         private void w(string s)
         {
-            byte[] bytes = e.GetBytes(s);
-            foreach (byte i in bytes)
-            {
-                w(i);
-            }
+            int byteCount = e.GetByteCount(s);
+            var dest = _writeBuffer.AsSpan(_writePosition, byteCount);
+            _writePosition+=e.GetBytes(s.AsSpan(), dest);
             _writeBuffer[_writePosition++] = 0;
         }
 
