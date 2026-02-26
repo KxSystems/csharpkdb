@@ -1269,11 +1269,7 @@ namespace kx
 
         private void w(float e)
         {
-            byte[] bytes = BitConverter.GetBytes(e);
-            foreach (byte i in bytes)
-            {
-                w(i);
-            }
+            w(BitConverter.SingleToInt32Bits(e));
         }
 
         private void w(double f)
