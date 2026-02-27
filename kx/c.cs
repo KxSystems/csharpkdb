@@ -1489,11 +1489,9 @@ namespace kx
                     }
                 case 10:
                     {
-                        byte[] byteArray = e.GetBytes((char[])x);
-                        foreach (byte obj in byteArray)
-                        {
-                            w(obj);
-                        }
+                        int byteCount = e.GetByteCount((char[])x);
+                        var dest = _writeBuffer.AsSpan(_writePosition, byteCount);
+                        _writePosition+=e.GetBytes(((char[])x).AsSpan(), dest);
                         break;
                     }
                 case 11:
