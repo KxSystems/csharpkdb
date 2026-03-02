@@ -861,23 +861,18 @@ namespace kx
 
             _readBuffer = buffer;
             ParseHeader();
-
-            int responseLength = buffer.Length - 8;
-            _readBuffer = new byte[responseLength];
-
-            Array.Copy(buffer, 8, _readBuffer, 0, responseLength);
-
+            
             if (IsCompressed)
             {
-                UnCompress();
+                UnCompress(8);
             }
             else
             {
-                _readPosition = 0;
+                _readPosition = 8;
             }
-            if (_readBuffer[0] == 128)
+            if (_readBuffer[_readPosition] == 128)
             {
-                _readPosition = 1;
+                ++_readPosition;
                 throw new KException(rs());
             }
             return r();
@@ -1170,7 +1165,7 @@ namespace kx
             Array.Resize(ref _writeBuffer, _writePosition);
         }
 
-        private void UnCompress()
+        private void UnCompress(int readPosition)
         {
             int j = 0;
             int r = 0;
@@ -1178,7 +1173,7 @@ namespace kx
             int s = 8;
             int p = s;
             short k = 0;
-            _readPosition = 0;
+            _readPosition = readPosition;
             byte[] dst = new byte[ri()];
             int d = _readPosition;
             int[] aa = new int[256];
@@ -1220,6 +1215,10 @@ namespace kx
             }
             _readBuffer = dst;
             _readPosition = 8;
+        }
+
+        private void UnCompress(){
+            UnCompress(0);
         }
 
         private void w(bool x)
