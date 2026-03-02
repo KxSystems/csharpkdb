@@ -1610,12 +1610,7 @@ namespace kx
             short h3 = rh();
             short h2 = rh();
             _isLittleEndian = oa;
-            byte[] b = new byte[8];
-            for (int i = 0; i < 8; i++)
-            {
-                b[i] = rx();
-            }
-            return new Guid(j, h3, h2, b);
+            return new Guid(j, h3, h2, rx(), rx(), rx(), rx(), rx(), rx(), rx(), rx());
         }
 
         private long rj()
