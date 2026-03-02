@@ -1767,14 +1767,10 @@ namespace kx
                             throw new KException("func");
                         }
                         if (t == 99)
-                        {
                             return new Dict(r(), r());
-                        }
                         _readPosition++;
                         if (t == 98)
-                        {
                             return new Flip((Dict)r());
-                        }
                         int j = ri();
                         switch (t)
                         {
@@ -1782,62 +1778,58 @@ namespace kx
                                 {
                                     object[] L = new object[j];
                                     for (; i < j; i++)
-                                    {
                                         L[i] = r();
-                                    }
                                     return L;
                                 }
                             case 1:
                                 {
                                     bool[] B = new bool[j];
                                     for (; i < j; i++)
-                                    {
                                         B[i] = rb();
-                                    }
                                     return B;
                                 }
                             case 2:
                                 {
                                     Guid[] G = new Guid[j];
                                     for (; i < j; i++)
-                                    {
                                         G[i] = rg();
-                                    }
                                     return G;
                                 }
                             case 4:
                                 {
                                     byte[] G2 = new byte[j];
-                                    for (; i < j; i++)
-                                    {
-                                        G2[i] = _readBuffer[_readPosition++];
-                                    }
+                                    Buffer.BlockCopy(_readBuffer,_readPosition,G2,0,j);
+                                    _readPosition+=j;
                                     return G2;
                                 }
                             case 5:
                                 {
                                     short[] H = new short[j];
                                     for (; i < j; i++)
-                                    {
                                         H[i] = rh();
-                                    }
                                     return H;
                                 }
                             case 6:
                                 {
                                     int[] I = new int[j];
-                                    for (; i < j; i++)
-                                    {
-                                        I[i] = ri();
+                                    if (_isLittleEndian){
+                                       Buffer.BlockCopy(_readBuffer,_readPosition,I,0,4*j);
+                                       _readPosition+=(4*j);     
+                                    }else{
+                                        for (; i < j; i++)
+                                            I[i] = ri();
                                     }
                                     return I;
                                 }
                             case 7:
                                 {
                                     long[] J = new long[j];
-                                    for (; i < j; i++)
-                                    {
-                                        J[i] = rj();
+                                    if (_isLittleEndian){
+                                       Buffer.BlockCopy(_readBuffer,_readPosition,J,0,8*j);
+                                       _readPosition+=(8*j);
+                                    }else{
+                                        for (; i < j; i++)
+                                            J[i] = rj();
                                     }
                                     return J;
                                 }
@@ -1845,18 +1837,14 @@ namespace kx
                                 {
                                     float[] E = new float[j];
                                     for (; i < j; i++)
-                                    {
                                         E[i] = re();
-                                    }
                                     return E;
                                 }
                             case 9:
                                 {
                                     double[] F = new double[j];
                                     for (; i < j; i++)
-                                    {
                                         F[i] = rf();
-                                    }
                                     return F;
                                 }
                             case 10:
@@ -1869,81 +1857,63 @@ namespace kx
                                 {
                                     string[] S = new string[j];
                                     for (; i < j; i++)
-                                    {
                                         S[i] = rs();
-                                    }
                                     return S;
                                 }
                             case 12:
                                 {
                                     DateTime[] P = new DateTime[j];
                                     for (; i < j; i++)
-                                    {
                                         P[i] = rp();
-                                    }
                                     return P;
                                 }
                             case 13:
                                 {
                                     Month[] M = new Month[j];
                                     for (; i < j; i++)
-                                    {
                                         M[i] = rm();
-                                    }
                                     return M;
                                 }
                             case 14:
                                 {
                                     Date[] D = new Date[j];
                                     for (; i < j; i++)
-                                    {
                                         D[i] = rd();
-                                    }
                                     return D;
                                 }
                             case 15:
                                 {
                                     DateTime[] Z = new DateTime[j];
                                     for (; i < j; i++)
-                                    {
                                         Z[i] = rz();
-                                    }
                                     return Z;
                                 }
                             case 16:
                                 {
                                     KTimespan[] N = new KTimespan[j];
                                     for (; i < j; i++)
-                                    {
                                         N[i] = rn();
-                                    }
                                     return N;
                                 }
                             case 17:
                                 {
                                     Minute[] U = new Minute[j];
                                     for (; i < j; i++)
-                                    {
                                         U[i] = ru();
-                                    }
                                     return U;
                                 }
                             case 18:
                                 {
                                     Second[] V = new Second[j];
                                     for (; i < j; i++)
-                                    {
                                         V[i] = rv();
-                                    }
                                     return V;
                                 }
                             case 19:
                                 {
                                     TimeSpan[] T = new TimeSpan[j];
                                     for (; i < j; i++)
-                                    {
                                         T[i] = rt();
-                                    }
                                     return T;
                                 }
                             default:
