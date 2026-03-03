@@ -1805,8 +1805,13 @@ namespace kx
                             case 5:
                                 {
                                     short[] H = new short[j];
-                                    for (; i < j; i++)
-                                        H[i] = rh();
+                                    if (_isLittleEndian){
+                                       Buffer.BlockCopy(_readBuffer,_readPosition,H,0,2*j);
+                                       _readPosition+=(2*j);
+                                    }else{
+                                        for (; i < j; i++)
+                                            H[i] = rh();
+                                    }
                                     return H;
                                 }
                             case 6:
