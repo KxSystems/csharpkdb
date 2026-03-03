@@ -1466,10 +1466,8 @@ namespace kx
                     }
                 case 8:
                     {
-                        foreach (float obj in (float[])x)
-                        {
-                            w(obj);
-                        }
+                        Buffer.BlockCopy(((float[])x),0,_writeBuffer,_writePosition,((float[])x).Length*4);
+                        _writePosition+=((float[])x).Length*4;
                         break;
                     }
                 case 9:
@@ -1833,8 +1831,13 @@ namespace kx
                             case 8:
                                 {
                                     float[] E = new float[j];
-                                    for (; i < j; i++)
-                                        E[i] = re();
+                                    if (_isLittleEndian){
+                                       Buffer.BlockCopy(_readBuffer,_readPosition,E,0,4*j);
+                                       _readPosition+=(4*j);
+                                    }else{
+                                        for (; i < j; i++)
+                                            E[i] = re();
+                                    }
                                     return E;
                                 }
                             case 9:
