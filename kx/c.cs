@@ -1448,18 +1448,14 @@ namespace kx
                     }
                 case 5:
                     {
-                        foreach (short obj in (short[])x)
-                        {
-                            w(obj);
-                        }
+                        Buffer.BlockCopy(((short[])x),0,_writeBuffer,_writePosition,((short[])x).Length*2);
+                        _writePosition+=((short[])x).Length*2;
                         break;
                     }
                 case 6:
                     {
-                        foreach (int obj in (int[])x)
-                        {
-                            w(obj);
-                        }
+                        Buffer.BlockCopy(((int[])x),0,_writeBuffer,_writePosition,((int[])x).Length*4);
+                        _writePosition+=((int[])x).Length*4;
                         break;
                     }
                 case 7:
