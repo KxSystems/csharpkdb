@@ -2239,15 +2239,11 @@ namespace kx
             /// </returns>
             public DateTime DateTime()
             {
-                if (i != -2147483647)
-                {
-                    if (i != int.MaxValue)
-                    {
-                        return new DateTime((i == KMinInt32) ? 0 : clampDT(864000000000L * i + Year2000Ticks),DateTimeKind.Unspecified);
-                    }
+                if (i == -2147483647)
+                    return KMinDateTime;
+                if (i == int.MaxValue)
                     return KMaxDateTime;
-                }
-                return KMinDateTime;
+                return new DateTime((i == KMinInt32) ? 0 : clampDT(864000000000L * i + Year2000Ticks),DateTimeKind.Unspecified);
             }
 
             #region Object Overrides
@@ -2267,11 +2263,9 @@ namespace kx
             /// <inheritdoc />
             public override string ToString()
             {
-                if (i != KMinInt32)
-                {
-                    return DateTime().ToString("d", System.Globalization.CultureInfo.InvariantCulture);
-                }
-                return string.Empty;
+                if (i == KMinInt32)
+                    return string.Empty;
+                return DateTime().ToString("d", System.Globalization.CultureInfo.InvariantCulture);
             }
             #endregion Object Overrides
 
