@@ -48,11 +48,11 @@ jobs:
         dotnet tool update dotnet-sonarscanner --tool-path ${{ runner.temp }}\scanner
     - name: SonarQube Cloud scanner begin
       if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && env.SONAR_TOKEN != '') }}
-      run: ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"KxSystems_csharpkdb" /o:"kxsystems" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.cs.vstest.reportsPaths="**\TestResults\*.trx" /d:sonar.cs.opencover.reportsPaths="*\coverage.opencover.xml" /d:sonar.verbose=false
+      run: ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"KxSystems_csharpkdb" /o:"kxsystems" /d:sonar.token="$env:SONAR_TOKEN" /d:sonar.cs.vstest.reportsPaths="**\TestResults\*.trx" /d:sonar.cs.opencover.reportsPaths="*\coverage.opencover.xml" /d:sonar.verbose=false
     - name: Build 
       run : dotnet build /p:Configuration=Release .\CSharpKdb.sln
     - name: Test
       run: dotnet test /p:Configuration=Release --no-build .\kx.Test\kx.Test.csproj --logger:trx /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
     - name: SonarQube Cloud scanner finish
       if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && env.SONAR_TOKEN != '') }} 
-      run: ${{ runner.temp }}\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+      run: ${{ runner.temp }}\scanner\dotnet-sonarscanner end /d:sonar.token="$env:SONAR_TOKEN"
