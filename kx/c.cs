@@ -3,6 +3,8 @@ using System.IO;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -129,17 +131,14 @@ namespace kx
         /// <exception cref="ArgumentNullException"><paramref name="host" /> was null.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="port" /> must be between <see cref="System.Net.IPEndPoint.MinPort" /> and <see cref="System.Net.IPEndPoint.MaxPort" /></exception>
         /// <exception cref="KException">Unable to connect to KDB+ process, access denied or process unavailable.</exception>
-        public c(string host,
-            int port)
-            : this(host, port, Environment.UserName)
-        {
-        }
+        public c(string host, int port) : this(host, port, Environment.UserName) { }
 
-        private c(string host,
+        private c(
+            string host,
             int port,
             string userPassword,
             int maxBufferSize,
-            bool useTLS,
+            KdbTlsOptions tlsOptions,
             bool uds)
         {
             if (host == null)
@@ -173,10 +172,26 @@ namespace kx
                     IPAddress.IsLoopback((_socket.RemoteEndPoint as IPEndPoint).Address);
             }
             _clientStream = new NetworkStream(_socket);
-            if (useTLS)
+            if (tlsOptions != null && tlsOptions.Enabled)
             {
-                _clientStream = new SslStream(_clientStream, false);
-                ((SslStream)_clientStream).AuthenticateAsClient(host);
+                var sslStream = new SslStream(
+                    _clientStream,
+                    leaveInnerStreamOpen: false,
+                    tlsOptions.RemoteCertificateValidationCallback,
+                    tlsOptions.LocalCertificateSelectionCallback);
+                var targetHost = tlsOptions.TargetHost ?? host;
+                var clientCertificates = tlsOptions.ClientCertificates;
+                var enabledSslProtocols = tlsOptions.EnabledSslProtocols ?? SslProtocols.None;
+                var checkCertificateRevocation =
+                    tlsOptions.CertificateRevocationCheckMode.HasValue &&
+                    tlsOptions.CertificateRevocationCheckMode.Value != X509RevocationMode.NoCheck;
+
+                sslStream.AuthenticateAsClient(
+                    targetHost,
+                    clientCertificates,
+                    enabledSslProtocols,
+                    checkCertificateRevocation);
+                _clientStream = sslStream;
             }
             _writeBuffer = new byte[2 + userPassword.Length];
             _writePosition = 0;
@@ -204,12 +219,50 @@ namespace kx
         /// <exception cref="ArgumentNullException"><paramref name="host" /> or <paramref name="userPassword" /> was null.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="port" /> must be between <see cref="System.Net.IPEndPoint.MinPort" /> and <see cref="System.Net.IPEndPoint.MaxPort" /></exception>
         /// <exception cref="KException">Unable to connect to KDB+ process, access denied or process unavailable.</exception>
-        public c(string host,
+        public c(
+            string host,
             int port,
             string userPassword,
             int maxBufferSize = DefaultMaxBufferSize,
             bool useTLS = false)
-            : this(host, port, userPassword, maxBufferSize, useTLS, false)
+            : this(
+                host,
+                port,
+                userPassword,
+                maxBufferSize,
+                useTLS ? KdbTls.Default(host) : KdbTlsOptions.Disabled,
+                false)
+        {
+        }
+
+        /// <param name="host">The hostname or IP address of the KDB+ server.</param>
+        /// <param name="port">The TCP port of the KDB+ server.</param>
+        /// <param name="userPassword">The username/password string used for authentication.</param>
+        /// <param name="maxBufferSize">The maximum buffer size used for IPC messages.</param>
+        /// <param name="tlsOptions">The TLS options to use for the connection.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="host"/> or <paramref name="userPassword"/> was null.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <paramref name="port"/> must be between <see cref="IPEndPoint.MinPort"/> and
+        /// <see cref="IPEndPoint.MaxPort"/>.
+        /// </exception>
+        /// <exception cref="KException">
+        /// Unable to connect to the KDB+ process, access denied, or process unavailable.
+        /// </exception>
+        public c(
+            string host,
+            int port,
+            string userPassword,
+            int maxBufferSize,
+            KdbTlsOptions tlsOptions)
+            : this(
+                host,
+                port,
+                userPassword,
+                maxBufferSize,
+                tlsOptions ?? KdbTlsOptions.Disabled,
+                false)
         {
         }
 
@@ -225,11 +278,50 @@ namespace kx
         /// <exception cref="ArgumentNullException"><paramref name="file" /> or <paramref name="userPassword" /> was null.</exception>
         /// <exception cref="KException">Unable to connect to KDB+ process, access denied or process unavailable.</exception>
         /// <exception cref="PlatformNotSupportedException">The current OS does not support Unix Domain Sockets</exception>
-        public c(string file,
+        public c(
+            string file,
             string userPassword,
             int maxBufferSize = DefaultMaxBufferSize,
             bool useTLS = false)
-            : this(file, 0, userPassword, maxBufferSize, useTLS, true)
+            : this(
+                file,
+                0,
+                userPassword,
+                maxBufferSize,
+                useTLS ? KdbTls.Default(file) : KdbTlsOptions.Disabled,
+                true)
+        {
+        }
+
+        /// <summary>
+        /// Initialises a new instance of <see cref="c"/> using a Unix Domain Socket connection,
+        /// a username/password for authentication, a maximum buffer size, and explicit TLS options.
+        /// </summary>
+        /// <param name="file">The Unix Domain Socket file path.</param>
+        /// <param name="userPassword">The username/password string used for authentication.</param>
+        /// <param name="maxBufferSize">The maximum buffer size used for IPC messages.</param>
+        /// <param name="tlsOptions">The TLS options to use for the connection.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="file"/> or <paramref name="userPassword"/> was null.
+        /// </exception>
+        /// <exception cref="KException">
+        /// Unable to connect to the KDB+ process, access denied, or process unavailable.
+        /// </exception>
+        /// <exception cref="PlatformNotSupportedException">
+        /// The current operating system does not support Unix Domain Sockets.
+        /// </exception>
+        public c(
+            string file,
+            string userPassword,
+            int maxBufferSize,
+            KdbTlsOptions tlsOptions)
+            : this(
+                file,
+                0,
+                userPassword,
+                maxBufferSize,
+                tlsOptions ?? KdbTlsOptions.Disabled,
+                true)
         {
         }
 
