@@ -225,13 +225,7 @@ namespace kx
             string userPassword,
             int maxBufferSize = DefaultMaxBufferSize,
             bool useTLS = false)
-            : this(
-                host,
-                port,
-                userPassword,
-                maxBufferSize,
-                useTLS ? KdbTls.Default(host) : KdbTlsOptions.Disabled,
-                false)
+            : this(host, port, userPassword, maxBufferSize, useTLS ? KdbTls.Default(host) : KdbTlsOptions.Disabled, false)
         {
         }
 
@@ -256,13 +250,7 @@ namespace kx
             string userPassword,
             int maxBufferSize,
             KdbTlsOptions tlsOptions)
-            : this(
-                host,
-                port,
-                userPassword,
-                maxBufferSize,
-                tlsOptions ?? KdbTlsOptions.Disabled,
-                false)
+            : this(host,port,userPassword,maxBufferSize,tlsOptions ?? KdbTlsOptions.Disabled,false)
         {
         }
 
@@ -274,22 +262,14 @@ namespace kx
         /// <param name="file">uds file e.g. "/tmp/kx.5010" is the default with kdb+ listening on port 5010</param>
         /// <param name="userPassword">The username and passsword, as "username:password" for remote authorisation.</param>
         /// <param name="maxBufferSize">The maximum buffer size, default is 65536.</param>
-        /// <param name="useTLS">A boolean flag indicating whether or not TLS authentication is enabled, default is false.</param>
         /// <exception cref="ArgumentNullException"><paramref name="file" /> or <paramref name="userPassword" /> was null.</exception>
         /// <exception cref="KException">Unable to connect to KDB+ process, access denied or process unavailable.</exception>
         /// <exception cref="PlatformNotSupportedException">The current OS does not support Unix Domain Sockets</exception>
         public c(
             string file,
             string userPassword,
-            int maxBufferSize = DefaultMaxBufferSize,
-            bool useTLS = false)
-            : this(
-                file,
-                0,
-                userPassword,
-                maxBufferSize,
-                useTLS ? KdbTls.Default(file) : KdbTlsOptions.Disabled,
-                true)
+            int maxBufferSize = DefaultMaxBufferSize)
+            : this(file, 0, userPassword, maxBufferSize, KdbTlsOptions.Disabled, true)
         {
         }
 
@@ -315,13 +295,7 @@ namespace kx
             string userPassword,
             int maxBufferSize,
             KdbTlsOptions tlsOptions)
-            : this(
-                file,
-                0,
-                userPassword,
-                maxBufferSize,
-                tlsOptions ?? KdbTlsOptions.Disabled,
-                true)
+            : this(file, 0, userPassword, maxBufferSize, tlsOptions ?? KdbTlsOptions.Disabled, true)
         {
         }
 

@@ -238,6 +238,106 @@ This example assumes rows with three fields, symbol, price and size.
 The `c` class throws exceptions of C\# class Exceptions both for typical socket read/write reasons and in higher level cases; 
 that is, errors at the q level rather than the Socket level.
 
+## SSL/TLS Connections
+
+SSL/TLS connections can be customized by use of the `KdbTlsOptions` class. A helper class `KdbTls` exists for commonly used settings, which can  produce a `KdbTlsOptions`. For full flexibility `KdbTlsOptions` can be used directly.
+To gain an understanding on the use of SSL/TLS, its useful to consult the following resources:
+
+* [`TLS/SSL best practices`](https://learn.microsoft.com/en-us/dotnet/core/extensions/sslstream-best-practices)
+* [`SslStream class`](https://learn.microsoft.com/en-us/dotnet/api/system.net.security.sslstream?view=net-8.0)
+* [`SslStream.authenticateasclient`](https://learn.microsoft.com/en-us/dotnet/api/system.net.security.sslstream.beginauthenticateasclient?view=net-8.0#system-net-security-sslstream-beginauthenticateasclient(system-string-system-security-cryptography-x509certificates-x509certificatecollection-system-security-authentication-sslprotocols-system-boolean-system-asynccallback-system-object)))
+* [`Using SSL/TLS with KDB+`](https://code.kx.com/q/kb/ssl/)
+
+### SSL/TLS Examples
+
+#### Connecting with host/ip verification
+
+Connects and checks host/ip on the server cert (i.e. the server certicate has been issues to the host/ip you are connecting to)
+
+```
+var conn = new c(host, port, usernamePassword, 65536, true);
+```
+
+#### Connecting without hostname verification
+
+To connect without hostname verification but reject other validation failures (such as untrusted private-CA certs).
+
+```c#
+var conn = new c(host, port, usernamePassword, 65536, KdbTls.IgnoreHostnameMismatch(host));
+```
+
+Connection errors for untrusted server certs recieved by the client can be prevented by installing the server cert to the client OS trust store as a trusted root.
+
+For example, on Ubuntu/Debian
+
+```bash
+sudo apt-get install -y ca-certificates
+sudo cp ca-cert.pem /usr/local/share/ca-certificates/foobar-ca.crt
+sudo update-ca-certificates
+```
+
+Please consult your OS for details on adding trusted certs.
+
+#### Connecting without hostname verification and cert chain errors
+
+Tolerate hostname mismatch and chain errors example:
+
+```c#
+var conn = new c(host, port, usernamePassword, 65536, new KdbTlsOptions {
+        Enabled = true,
+        TargetHost = targetHost,
+        RemoteCertificateValidationCallback = (sender, certificate, chain, errors) =>
+        {
+            if (certificate == null)
+            {
+                return false;
+            }
+
+            var cert2 = certificate as X509Certificate2 ?? new X509Certificate2(certificate);
+            var actualThumbprint = cert2.Thumbprint?.Replace(" ", "");
+            var expected = expectedThumbprint?.Replace(" ", "");
+
+            if (!string.Equals(actualThumbprint, expected, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            var allowedErrors = SslPolicyErrors.None;
+
+            if (ignoreHostnameMismatch)
+            {
+                allowedErrors |= SslPolicyErrors.RemoteCertificateNameMismatch;
+            }
+
+            allowedErrors |= SslPolicyErrors.RemoteCertificateChainErrors;
+
+            return (errors & ~allowedErrors) == SslPolicyErrors.None;
+    })
+```
+
+#### Client side key and cert
+
+If you wish to provide a client side private key and cert to the server, the following demonstrates this:
+
+```c#
+using System.IO;
+using System.Security.Cryptography.X509Certificates;
+
+var certPem = File.ReadAllText("client-cert.pem");
+var keyPem = File.ReadAllText("client-private-key.pem");
+
+var clientCert = X509Certificate2.CreateFromPem(certPem, keyPem);
+
+var tls = new KdbTlsOptions
+{
+    Enabled = true,
+    TargetHost = host
+};
+
+tls.ClientCertificates.Add(clientCert);
+
+var conn = new c(host, port, usernamePassword, 65536, tls);
+```
 
 ## Examples
 
