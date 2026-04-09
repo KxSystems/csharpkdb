@@ -55,11 +55,5 @@ namespace kx
         /// Gets or sets the callback used to select a local client certificate.
         /// </summary>
         public LocalCertificateSelectionCallback LocalCertificateSelectionCallback { get; set; }
-
-        /// <summary>
-        /// Gets or sets an optional callback used to configure
-        /// <see cref="SslClientAuthenticationOptions"/> before authentication.
-        /// </summary>
-        public Action<SslClientAuthenticationOptions> ConfigureAuthenticationOptions { get; set; }
     }
 }

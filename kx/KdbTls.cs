@@ -27,7 +27,8 @@ namespace kx
 
         /// <summary>
         /// Creates a TLS configuration that ignores certificate host name mismatch
-        /// errors while still rejecting other certificate validation failures.
+        /// errors while still rejecting other certificate validation failures
+        /// such as untrusted private-CA cert or self-signed certs.
         /// </summary>
         /// <param name="targetHost">
         /// The target host name used during TLS authentication.
