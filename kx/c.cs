@@ -123,6 +123,43 @@ namespace kx
         private bool _isLittleEndian;
 
         /// <summary>
+        /// Specifies the IP address family preference to use when establishing a TCP connection.
+        /// </summary>
+        /// <remarks>
+        /// Use this option to control whether a connection should be attempted using IPv4,
+        /// IPv6, or a dual-mode socket that can support both IPv4 and IPv6 where the
+        /// operating system and network configuration allow it.
+        /// </remarks>
+        public enum IpVersionPreference
+        {
+            /// <summary>
+            /// Use IPv4 only.
+            /// </summary>
+            /// <remarks>
+            /// Creates or selects a socket that uses <see cref="System.Net.Sockets.AddressFamily.InterNetwork"/>.
+            /// </remarks>
+            IPv4,
+
+            /// <summary>
+            /// Use IPv6 only.
+            /// </summary>
+            /// <remarks>
+            /// Creates or selects a socket that uses <see cref="System.Net.Sockets.AddressFamily.InterNetworkV6"/>
+            /// without accepting IPv4-mapped IPv6 addresses.
+            /// </remarks>
+            IPv6,
+
+            /// <summary>
+            /// Use a dual-mode socket that can support both IPv4 and IPv6.
+            /// </summary>
+            /// <remarks>
+            /// Creates or selects an IPv6 socket with <see cref="System.Net.Sockets.Socket.DualMode"/>
+            /// enabled, allowing both IPv6 addresses and IPv4-mapped IPv6 addresses where supported.
+            /// </remarks>
+            DualStack
+        }
+
+        /// <summary>
         /// Initialises a new instance of <see cref="c" /> with a specified host and port 
         /// to connect to.
         /// </summary>
@@ -139,7 +176,8 @@ namespace kx
             string userPassword,
             int maxBufferSize,
             KdbTlsOptions tlsOptions,
-            bool uds)
+            bool uds,
+            IpVersionPreference ipVersionPreference)
         {
             if (host == null)
             {
@@ -166,7 +204,18 @@ namespace kx
             }
             else
             {
-                _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                switch (ipVersionPreference)
+                {
+                    case (IpVersionPreference.IPv4):
+                        _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                        break;
+                    case (IpVersionPreference.IPv6):
+                        _socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
+                        break;
+                    case (IpVersionPreference.DualStack):
+                        _socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+                        break;
+                }
                 _socket.Connect(host, port);
                 _isLoopback = _socket.RemoteEndPoint is IPEndPoint &&
                     IPAddress.IsLoopback((_socket.RemoteEndPoint as IPEndPoint).Address);
@@ -216,6 +265,7 @@ namespace kx
         /// <param name="userPassword">The username and passsword, as "username:password" for remote authorisation.</param>
         /// <param name="maxBufferSize">The maximum buffer size, default is 65536.</param>
         /// <param name="useTLS">A boolean flag indicating whether or not TLS authentication is enabled, default is false.</param>
+        /// <param name="ipVersionPreference">The IP address family preference to use when establishing a TCP connection.</param>
         /// <exception cref="ArgumentNullException"><paramref name="host" /> or <paramref name="userPassword" /> was null.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="port" /> must be between <see cref="System.Net.IPEndPoint.MinPort" /> and <see cref="System.Net.IPEndPoint.MaxPort" /></exception>
         /// <exception cref="KException">Unable to connect to KDB+ process, access denied or process unavailable.</exception>
@@ -224,8 +274,9 @@ namespace kx
             int port,
             string userPassword,
             int maxBufferSize = DefaultMaxBufferSize,
-            bool useTLS = false)
-            : this(host, port, userPassword, maxBufferSize, useTLS ? KdbTls.Default(host) : KdbTlsOptions.Disabled, false)
+            bool useTLS = false,
+            IpVersionPreference ipVersionPreference = IpVersionPreference.IPv4)
+            : this(host, port, userPassword, maxBufferSize, useTLS ? KdbTls.Default(host) : KdbTlsOptions.Disabled, false, ipVersionPreference)
         {
         }
 
@@ -234,6 +285,7 @@ namespace kx
         /// <param name="userPassword">The username/password string used for authentication.</param>
         /// <param name="maxBufferSize">The maximum buffer size used for IPC messages.</param>
         /// <param name="tlsOptions">The TLS options to use for the connection.</param>
+        /// <param name="ipVersionPreference">The IP address family preference to use when establishing a TCP connection.</param>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="host"/> or <paramref name="userPassword"/> was null.
         /// </exception>
@@ -249,8 +301,9 @@ namespace kx
             int port,
             string userPassword,
             int maxBufferSize,
-            KdbTlsOptions tlsOptions)
-            : this(host,port,userPassword,maxBufferSize,tlsOptions ?? KdbTlsOptions.Disabled,false)
+            KdbTlsOptions tlsOptions,
+            IpVersionPreference ipVersionPreference = IpVersionPreference.IPv4)
+            : this(host,port,userPassword,maxBufferSize,tlsOptions ?? KdbTlsOptions.Disabled,false,ipVersionPreference)
         {
         }
 
@@ -262,14 +315,16 @@ namespace kx
         /// <param name="file">uds file e.g. "/tmp/kx.5010" is the default with kdb+ listening on port 5010</param>
         /// <param name="userPassword">The username and passsword, as "username:password" for remote authorisation.</param>
         /// <param name="maxBufferSize">The maximum buffer size, default is 65536.</param>
+        /// <param name="ipVersionPreference">The IP address family preference to use when establishing a TCP connection.</param>
         /// <exception cref="ArgumentNullException"><paramref name="file" /> or <paramref name="userPassword" /> was null.</exception>
         /// <exception cref="KException">Unable to connect to KDB+ process, access denied or process unavailable.</exception>
         /// <exception cref="PlatformNotSupportedException">The current OS does not support Unix Domain Sockets</exception>
         public c(
             string file,
             string userPassword,
-            int maxBufferSize = DefaultMaxBufferSize)
-            : this(file, 0, userPassword, maxBufferSize, KdbTlsOptions.Disabled, true)
+            int maxBufferSize = DefaultMaxBufferSize,
+            IpVersionPreference ipVersionPreference = IpVersionPreference.IPv4)
+            : this(file, 0, userPassword, maxBufferSize, KdbTlsOptions.Disabled, true, ipVersionPreference)
         {
         }
 
@@ -281,6 +336,7 @@ namespace kx
         /// <param name="userPassword">The username/password string used for authentication.</param>
         /// <param name="maxBufferSize">The maximum buffer size used for IPC messages.</param>
         /// <param name="tlsOptions">The TLS options to use for the connection.</param>
+        /// <param name="ipVersionPreference">The IP address family preference to use when establishing a TCP connection.</param>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="file"/> or <paramref name="userPassword"/> was null.
         /// </exception>
@@ -294,8 +350,9 @@ namespace kx
             string file,
             string userPassword,
             int maxBufferSize,
-            KdbTlsOptions tlsOptions)
-            : this(file, 0, userPassword, maxBufferSize, tlsOptions ?? KdbTlsOptions.Disabled, true)
+            KdbTlsOptions tlsOptions,
+            IpVersionPreference ipVersionPreference = IpVersionPreference.IPv4)
+            : this(file, 0, userPassword, maxBufferSize, tlsOptions ?? KdbTlsOptions.Disabled, true, ipVersionPreference)
         {
         }
 

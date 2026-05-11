@@ -19,6 +19,10 @@ It is important to close the `c` object explicitly, via the `Close` method, when
 
 The class provides a number of other features explored in the following sections.
 
+#### Connecting using IPv6
+
+Connections default to using IPv4. Passing `IpVersionPreference` to the constructor can be used to specify whether IPv6 should be used. The DualStack option create a dual socket so both IPv4 and IPv6 will be tried on a connection, if the operating system supports it.
+
 ### Connecting using UDS (Unix Domain Sockets)
 
 As an alternative to the standard TCP connection, kdb+ can use UDS. See [here](https://code.kx.com/q/basics/listening-port/#unix-domain-socket) for details.
