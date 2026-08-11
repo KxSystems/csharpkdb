@@ -1430,9 +1430,7 @@ namespace kx
 
         private void w(string s)
         {
-            int byteCount = e.GetByteCount(s);
-            var dest = _writeBuffer.AsSpan(_writePosition, byteCount);
-            _writePosition+=e.GetBytes(s.AsSpan(), dest);
+            _writePosition += e.GetBytes(s,0,s.Length,_writeBuffer,_writePosition);
             _writeBuffer[_writePosition++] = 0;
         }
 
@@ -1625,9 +1623,8 @@ namespace kx
                     }
                 case 10:
                     {
-                        int byteCount = e.GetByteCount((char[])x);
-                        var dest = _writeBuffer.AsSpan(_writePosition, byteCount);
-                        _writePosition+=e.GetBytes(((char[])x).AsSpan(), dest);
+                        char[] chars = (char[])x;
+                        _writePosition += e.GetBytes(chars,0,chars.Length,_writeBuffer,_writePosition);
                         break;
                     }
                 case 11:
