@@ -34,6 +34,7 @@ Example of client connection when kdb+ listening on 5001:
 ```c#
 connection = new c("/tmp/kx.5001","username:password");
 ```
+API and runtime support is listed [here](https://learn.microsoft.com/en-us/dotnet/api/system.net.sockets.unixdomainsocketendpoint?view=net-10.0#applies-to), otherwise a `PlatformNotSupportedException` will occur when trying to create a connection of this type.
 
 ## Maximum Message Size
 
