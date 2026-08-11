@@ -1376,6 +1376,7 @@ namespace kx
             {
                 throw new KException("Guid not valid pre kdb+3.0");
             }
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP2_1_OR_GREATER
             Span<byte> dest = _writeBuffer.AsSpan(_writePosition, 16);
             if (!g.TryWriteBytes(dest))
                 throw new InvalidOperationException();
@@ -1385,6 +1386,19 @@ namespace kx
             (dest[4], dest[5]) = (dest[5], dest[4]);
             (dest[6], dest[7]) = (dest[7], dest[6]);
             _writePosition += 16;
+#else
+            byte[] b = g.ToByteArray();
+            w(b[3]);
+            w(b[2]);
+            w(b[1]);
+            w(b[0]);
+            w(b[5]);
+            w(b[4]);
+            w(b[7]);
+            w(b[6]);
+            for (int i = 8; i < 16; ++i)
+                w(b[i]);
+#endif
         }
 
         private void w(long j)
@@ -1395,7 +1409,13 @@ namespace kx
 
         private void w(float e)
         {
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP2_0_OR_GREATER
             w(BitConverter.SingleToInt32Bits(e));
+#else
+            byte[] bytes = BitConverter.GetBytes(e);
+            foreach (byte i in bytes)
+                w(i);
+#endif
         }
 
         private void w(double f)
