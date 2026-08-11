@@ -1045,7 +1045,11 @@ namespace kx
         /// <param name="number">The number of bytes to be written to the client stream.</param>
         protected async Task WriteAsync(byte[] bytes, int number)
         {
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP2_1_OR_GREATER
             await _clientStream.WriteAsync(bytes.AsMemory(0, number)).ConfigureAwait(false);
+#else
+            await _clientStream.WriteAsync(bytes,0,number).ConfigureAwait(false);
+#endif
         }
 
         /// <summary>
@@ -2075,7 +2079,11 @@ namespace kx
         private async Task wAsync(int i, object x)
         {
             byte[] buffer = Serialize(i, x);
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP2_1_OR_GREATER
             await _clientStream.WriteAsync(buffer.AsMemory(0, buffer.Length)).ConfigureAwait(false);
+#else
+            await _clientStream.WriteAsync(buffer,0,buffer.Length).ConfigureAwait(false);
+#endif
         }
 
         private void read(byte[] b)
@@ -2108,7 +2116,11 @@ namespace kx
                 if (k < j)
                 {
                     int i;
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP2_1_OR_GREATER
                     if ((i = await _clientStream.ReadAsync(b.AsMemory(k, Math.Min(_maxBufferSize, j - k))).ConfigureAwait(false)) == 0)
+#else
+                    if ((i = await _clientStream.ReadAsync(b,k,Math.Min(_maxBufferSize,j-k)).ConfigureAwait(false)) == 0)
+#endif
                     {
                         break;
                     }
