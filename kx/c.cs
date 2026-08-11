@@ -198,9 +198,13 @@ namespace kx
             _maxBufferSize = maxBufferSize;
             if(uds)
             {
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP2_1_OR_GREATER
                 _socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
                 _socket.Connect(new UnixDomainSocketEndPoint(host));
                 _isLoopback = true;
+#else
+                throw new PlatformNotSupportedException("Unix Domain Sockets are not supported by this target framework.");
+#endif
             }
             else
             {
