@@ -3,12 +3,14 @@
   <PropertyGroup>
     <!-- net472 for netstandard2.0, netcoreapp3.1 for netstandard2.1, net8.0 for net8.0 -->
     <TargetFrameworks>net472;netcoreapp3.1;net8.0</TargetFrameworks>
-
     <IsPackable>false</IsPackable>
-
     <SignAssembly>true</SignAssembly>
-
     <AssemblyOriginatorKeyFile>kx.Test.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
