@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Security.Cryptography;
 using kx;
 using NLog;
 
@@ -8,6 +7,7 @@ namespace FeedDemo
     static class Program
     {
         private static readonly ILogger Logger = LogManager.GetCurrentClassLogger();
+        private static readonly Random Random = new Random();
 
         private const string  QFunc = ".u.upd";
         private const string TableName = "mytable";
@@ -71,7 +71,7 @@ namespace FeedDemo
             string[] syms = new[] { "ABC", "DEF", "GHI", "JKL" };
 
             c.KTimespan[] times = CreateTestArray(i => new c.KTimespan(i), 10);
-            string[] symbols = CreateTestArray(i => syms[RandomNumberGenerator.GetInt32(syms.Length)], 10);
+            string[] symbols = CreateTestArray(i => syms[Random.Next(syms.Length)], 10);
             double[] prices = CreateTestArray(i => i * 1.1, 10);
             long[] sizes = CreateTestArray(i => (long)(i * 100), 10);
 

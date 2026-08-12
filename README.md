@@ -6,7 +6,7 @@
 
 *The C# KDB library provides functionality for .NET applications to interface with a kdb+ process.*
 
-The library is compiled on .NET Standard 2.1.
+The library is compiled on .NET Standard 2.0, 2.1 and net8.0.
 
 See https://dotnet.microsoft.com/platform/dotnet-standard for further details
 
