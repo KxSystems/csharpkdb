@@ -1023,5 +1023,313 @@ namespace kx.Test.Connection
             }
             return array;
         }
+
+                [Test]
+        public void ConnectionDeserialisesBigEndianIntInput()
+        {
+            const int expected = 0x01020304;
+
+            byte[] message = CreateBigEndianMessage(
+                2,
+                unchecked((byte)-6),
+                0x01, 0x02, 0x03, 0x04);
+
+            using (var connection = new c(_testVersionNumber))
+            {
+                object result = connection.Deserialize(message);
+
+                Assert.AreEqual(expected, result);
+                Assert.IsFalse(connection.IsSync);
+                Assert.IsTrue(connection.IsResponse);
+            }
+        }
+
+        [Test]
+        public void ConnectionDeserialisesBigEndianLongInput()
+        {
+            const long expected = 0x0102030405060708L;
+
+            byte[] message = CreateBigEndianMessage(
+                1,
+                unchecked((byte)-7),
+                0x01, 0x02, 0x03, 0x04,
+                0x05, 0x06, 0x07, 0x08);
+
+            using (var connection = new c(_testVersionNumber))
+            {
+                object result = connection.Deserialize(message);
+
+                Assert.AreEqual(expected, result);
+                Assert.IsTrue(connection.IsSync);
+                Assert.IsFalse(connection.IsResponse);
+            }
+        }
+
+        [Test]
+        public void ConnectionDeserialisesBigEndianFloatInput()
+        {
+            const float expected = 47.25F;
+
+            byte[] value = BitConverter.GetBytes(expected);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(value);
+            }
+
+            byte[] payload = new byte[value.Length + 1];
+            payload[0] = unchecked((byte)-8);
+            Buffer.BlockCopy(value, 0, payload, 1, value.Length);
+
+            byte[] message = CreateBigEndianMessage(1, payload);
+
+            using (var connection = new c(_testVersionNumber))
+            {
+                object result = connection.Deserialize(message);
+
+                Assert.AreEqual(expected, result);
+            }
+        }
+
+        [Test]
+        public void ConnectionDeserialisesBigEndianIntArrayInput()
+        {
+            int[] expected =
+            {
+                0x01020304,
+                -2,
+                int.MaxValue,
+                int.MinValue
+            };
+
+            byte[] payload =
+            {
+                6,                  // q int list
+                0,                  // attributes
+                0, 0, 0, 4,        // number of elements
+
+                0x01, 0x02, 0x03, 0x04,
+                0xff, 0xff, 0xff, 0xfe,
+                0x7f, 0xff, 0xff, 0xff,
+                0x80, 0x00, 0x00, 0x00
+            };
+
+            byte[] message = CreateBigEndianMessage(1, payload);
+
+            using (var connection = new c(_testVersionNumber))
+            {
+                int[] result = connection.Deserialize(message) as int[];
+
+                Assert.IsNotNull(result);
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
+        [Test]
+        public void ConnectionDeserialisesLegacyDatetimeInput()
+        {
+            DateTime expected =
+                new DateTime(2000, 1, 2, 12, 0, 0, DateTimeKind.Unspecified);
+
+            byte[] message = CreateLittleEndianScalar(
+                unchecked((byte)-15),
+                BitConverter.GetBytes(1.5));
+
+            using (var connection = new c(_testVersionNumber))
+            {
+                object result = connection.Deserialize(message);
+
+                Assert.AreEqual(expected, result);
+            }
+        }
+
+        [Test]
+        public void ConnectionDeserialisesLegacyDatetimePositiveInfinityAsMaxDateTime()
+        {
+            byte[] message = CreateLittleEndianScalar(
+                unchecked((byte)-15),
+                BitConverter.GetBytes(double.PositiveInfinity));
+
+            using (var connection = new c(_testVersionNumber))
+            {
+                object result = connection.Deserialize(message);
+
+                Assert.AreEqual(DateTime.MaxValue, result);
+            }
+        }
+
+        [Test]
+        public void ConnectionDeserialisesLegacyDatetimeNegativeInfinityAsMinimumKdbDateTime()
+        {
+            byte[] message = CreateLittleEndianScalar(
+                unchecked((byte)-15),
+                BitConverter.GetBytes(double.NegativeInfinity));
+
+            DateTime expected = DateTime.MinValue.AddTicks(1);
+
+            using (var connection = new c(_testVersionNumber))
+            {
+                object result = connection.Deserialize(message);
+
+                Assert.AreEqual(expected, result);
+            }
+        }
+
+        [Test]
+        public void ConnectionDeserialisesGenericNull()
+        {
+            byte[] message = CreateLittleEndianMessage(
+                1,
+                101,
+                0);
+
+            using (var connection = new c(_testVersionNumber))
+            {
+                object result = connection.Deserialize(message);
+
+                Assert.IsNull(result);
+            }
+        }
+
+        [Test]
+        public void ConnectionThrowsKExceptionForUnsupportedFunction()
+        {
+            byte[] message = CreateLittleEndianMessage(
+                1,
+                101,
+                1);
+
+            using (var connection = new c(_testVersionNumber))
+            {
+                KException exception =
+                    Assert.Throws<KException>(() => connection.Deserialize(message));
+
+                Assert.AreEqual("func", exception.Message);
+            }
+        }
+
+        [Test]
+        public void ConnectionSetsExpectedHeaderFlagsForSyncMessage()
+        {
+            using (var connection = new c(_testVersionNumber))
+            {
+                byte[] message = connection.Serialize(1, 42);
+
+                connection.Deserialize(message);
+
+                Assert.IsTrue(connection.IsSync);
+                Assert.IsFalse(connection.IsResponse);
+                Assert.IsFalse(connection.IsCompressed);
+            }
+        }
+
+        [Test]
+        public void ConnectionSetsExpectedHeaderFlagsForResponseMessage()
+        {
+            using (var connection = new c(_testVersionNumber))
+            {
+                byte[] message = connection.Serialize(2, 42);
+
+                connection.Deserialize(message);
+
+                Assert.IsFalse(connection.IsSync);
+                Assert.IsTrue(connection.IsResponse);
+                Assert.IsFalse(connection.IsCompressed);
+            }
+        }
+
+        [Test]
+        public void ConnectionFallsBackToUncompressedWhenDataDoesNotCompressEnough()
+        {
+            byte[] expected = new byte[10000];
+            new Random(123456).NextBytes(expected);
+
+            using (var connection = new c(_testVersionNumber))
+            {
+                byte[] serialisedData = connection.Serialize(0, expected, true);
+
+                // Compression was requested, but effectively random data
+                // cannot be reduced to the compressor's target size.
+                Assert.AreEqual(0, serialisedData[2]);
+
+                byte[] result = connection.Deserialize(serialisedData) as byte[];
+
+                Assert.IsNotNull(result);
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
+        [Test]
+        public void ConnectionCompressesHighlyCompressibleInput()
+        {
+            byte[] expected = Enumerable.Repeat((byte)42, 10000).ToArray();
+
+            using (var connection = new c(_testVersionNumber))
+            {
+                byte[] serialisedData = connection.Serialize(0, expected, true);
+
+                Assert.AreEqual(1, serialisedData[2]);
+
+                byte[] result = connection.Deserialize(serialisedData) as byte[];
+
+                Assert.IsNotNull(result);
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
+        private static byte[] CreateLittleEndianScalar(
+            byte type,
+            byte[] value)
+        {
+            byte[] payload = new byte[value.Length + 1];
+
+            payload[0] = type;
+            Buffer.BlockCopy(value, 0, payload, 1, value.Length);
+
+            return CreateLittleEndianMessage(1, payload);
+        }
+
+        private static byte[] CreateLittleEndianMessage(
+            byte messageType,
+            params byte[] payload)
+        {
+            int length = 8 + payload.Length;
+            byte[] message = new byte[length];
+
+            message[0] = 1;
+            message[1] = messageType;
+            message[2] = 0;
+            message[3] = 0;
+
+            message[4] = (byte)length;
+            message[5] = (byte)(length >> 8);
+            message[6] = (byte)(length >> 16);
+            message[7] = (byte)(length >> 24);
+
+            Buffer.BlockCopy(payload, 0, message, 8, payload.Length);
+
+            return message;
+        }
+
+        private static byte[] CreateBigEndianMessage(
+            byte messageType,
+            params byte[] payload)
+        {
+            int length = 8 + payload.Length;
+            byte[] message = new byte[length];
+
+            message[0] = 0;
+            message[1] = messageType;
+            message[2] = 0;
+            message[3] = 0;
+
+            message[4] = (byte)(length >> 24);
+            message[5] = (byte)(length >> 16);
+            message[6] = (byte)(length >> 8);
+            message[7] = (byte)length;
+
+            Buffer.BlockCopy(payload, 0, message, 8, payload.Length);
+
+            return message;
+        }
     }
 }
