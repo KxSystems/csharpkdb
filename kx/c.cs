@@ -1174,7 +1174,7 @@ namespace kx
             }
             if (x is char[] carray)
             {
-                return e.GetBytes(carray).Length;
+                return e.GetByteCount(carray);
             }
             return ((Array)x).Length;
         }
@@ -2136,7 +2136,11 @@ namespace kx
         {
             int j = s.IndexOf('\0');
             j = ((-1 < j) ? j : s.Length);
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP2_0_OR_GREATER
+            return e.GetByteCount(s, 0, j);
+#else
             return e.GetBytes(s.Substring(0, j)).Length;
+#endif
         }
 
         private static string i2(int i)
