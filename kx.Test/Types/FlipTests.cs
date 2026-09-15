@@ -7,7 +7,7 @@ namespace kx.Test.Types
     public class FlipTests
     {
         private static readonly string[] FlipKeys = {"Key_1"};
-        private static readonly object[] FlipValues = {new object[] { "Value_1" }};
+        private static readonly object[] FlipValues = { "Value_1" };
         [Test]
         public void FlipInitialises()
         {
