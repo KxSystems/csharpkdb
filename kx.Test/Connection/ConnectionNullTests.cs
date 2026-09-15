@@ -646,7 +646,7 @@ namespace kx.Test.Connection
         [Test]
         public void ConnectionIsQNullReturnsFalseForDict()
         {
-            c.Dict input = new c.Dict(new string[] { }, new object[] { });
+            c.Dict input = new c.Dict(Array.Empty<string>(), Array.Empty<object>());
 
             Assert.IsFalse(c.qn(input));
         }
@@ -654,7 +654,7 @@ namespace kx.Test.Connection
         [Test]
         public void ConnectionIsQNullReturnsFalseForFlip()
         {
-            c.Flip input = new c.Flip(new c.Dict(new string[] { }, new object[] { }));
+            c.Flip input = new c.Flip(new c.Dict(Array.Empty<string>(), Array.Empty<object>()));
 
             Assert.IsFalse(c.qn(input));
         }
