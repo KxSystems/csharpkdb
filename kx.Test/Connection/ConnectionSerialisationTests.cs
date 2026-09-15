@@ -1125,6 +1125,107 @@ namespace kx.Test.Connection
         }
 
         [Test]
+        public void ConnectionDeserialisesBigEndianShortArrayInput()
+        {
+            short[] expected = { 0x0102, -2, short.MaxValue, short.MinValue };
+            byte[] message = CreateBigEndianList(
+                5,
+                expected.Length,
+                0x01, 0x02,
+                0xff, 0xfe,
+                0x7f, 0xff,
+                0x80, 0x00);
+
+            using (var connection = new c(_testVersionNumber))
+            {
+                short[] result = connection.Deserialize(message) as short[];
+
+                Assert.IsNotNull(result);
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
+        [Test]
+        public void ConnectionDeserialisesBigEndianLongArrayInput()
+        {
+            long[] expected = { 0x0102030405060708L, -2L };
+            byte[] message = CreateBigEndianList(
+                7,
+                expected.Length,
+                0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+                0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe);
+
+            using (var connection = new c(_testVersionNumber))
+            {
+                long[] result = connection.Deserialize(message) as long[];
+
+                Assert.IsNotNull(result);
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
+        [Test]
+        public void ConnectionDeserialisesBigEndianFloatArrayInput()
+        {
+            float[] expected = { 47.25F, -1.5F };
+            byte[] message = CreateBigEndianList(
+                8,
+                expected.Length,
+                GetBigEndianBytes(expected[0]),
+                GetBigEndianBytes(expected[1]));
+
+            using (var connection = new c(_testVersionNumber))
+            {
+                float[] result = connection.Deserialize(message) as float[];
+
+                Assert.IsNotNull(result);
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
+        [Test]
+        public void ConnectionDeserialisesBigEndianDoubleArrayInput()
+        {
+            double[] expected = { 47.25, -1.5 };
+            byte[] message = CreateBigEndianList(
+                9,
+                expected.Length,
+                GetBigEndianBytes(expected[0]),
+                GetBigEndianBytes(expected[1]));
+
+            using (var connection = new c(_testVersionNumber))
+            {
+                double[] result = connection.Deserialize(message) as double[];
+
+                Assert.IsNotNull(result);
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
+        [Test]
+        public void ConnectionDeserialisesLegacyDatetimeArrayInput()
+        {
+            DateTime[] expected =
+            {
+                new DateTime(2000, 1, 2, 12, 0, 0, DateTimeKind.Unspecified),
+                new DateTime(1999, 12, 31, 0, 0, 0, DateTimeKind.Unspecified)
+            };
+            byte[] message = CreateBigEndianList(
+                15,
+                expected.Length,
+                GetBigEndianBytes(1.5),
+                GetBigEndianBytes(-1.0));
+
+            using (var connection = new c(_testVersionNumber))
+            {
+                DateTime[] result = connection.Deserialize(message) as DateTime[];
+
+                Assert.IsNotNull(result);
+                Assert.IsTrue(Enumerable.SequenceEqual(expected, result));
+            }
+        }
+
+        [Test]
         public void ConnectionDeserialisesLegacyDatetimeInput()
         {
             DateTime expected =
@@ -1181,6 +1282,23 @@ namespace kx.Test.Connection
                 1,
                 101,
                 0);
+
+            using (var connection = new c(_testVersionNumber))
+            {
+                object result = connection.Deserialize(message);
+
+                Assert.IsNull(result);
+            }
+        }
+
+        [Test]
+        public void ConnectionDeserialisesUnknownListTypeAsNull()
+        {
+            byte[] message = CreateLittleEndianMessage(
+                1,
+                20,             // unsupported list type
+                0,              // attributes
+                0, 0, 0, 0);    // empty list
 
             using (var connection = new c(_testVersionNumber))
             {
@@ -1330,6 +1448,50 @@ namespace kx.Test.Connection
             Buffer.BlockCopy(payload, 0, message, 8, payload.Length);
 
             return message;
+        }
+
+        private static byte[] CreateBigEndianList(
+            byte type,
+            int count,
+            params byte[][] values)
+        {
+            return CreateBigEndianList(type, count, values.SelectMany(value => value).ToArray());
+        }
+
+        private static byte[] CreateBigEndianList(
+            byte type,
+            int count,
+            params byte[] values)
+        {
+            byte[] payload = new byte[6 + values.Length];
+            payload[0] = type;
+            payload[1] = 0;
+            payload[2] = (byte)(count >> 24);
+            payload[3] = (byte)(count >> 16);
+            payload[4] = (byte)(count >> 8);
+            payload[5] = (byte)count;
+            Buffer.BlockCopy(values, 0, payload, 6, values.Length);
+
+            return CreateBigEndianMessage(1, payload);
+        }
+
+        private static byte[] GetBigEndianBytes(float value)
+        {
+            return ToBigEndian(BitConverter.GetBytes(value));
+        }
+
+        private static byte[] GetBigEndianBytes(double value)
+        {
+            return ToBigEndian(BitConverter.GetBytes(value));
+        }
+
+        private static byte[] ToBigEndian(byte[] value)
+        {
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(value);
+            }
+            return value;
         }
     }
 }
