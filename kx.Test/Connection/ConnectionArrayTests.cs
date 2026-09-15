@@ -7,12 +7,14 @@ namespace kx.Test.Connection
     [TestFixture]
     public class ConnectionArrayTests
     {
+        private static readonly string[] FlipKeys = {"Key_1"};
+        private static readonly object[] FlipValues = {new object[] { "Value_1" }};
         [Test]
         public void ConnectionReturnsExpectedLengthForDict()
         {
             const int expected = 1;
 
-            c.Dict dict = new c.Dict(new[] { "Key_1" }, new object[] { "Value_1" });
+            c.Dict dict = new c.Dict(FlipKeys, FlipValues);
 
             int count = c.n(dict);
 
@@ -24,7 +26,7 @@ namespace kx.Test.Connection
         {
             const int expected = 1;
 
-            c.Flip flip = new c.Flip(new c.Dict(new[] { "Key_1" }, new object[] { new object[] { "Value_1" } }));
+            c.Flip flip = new c.Flip(new c.Dict(FlipKeys, FlipValues));
 
             int count = c.n(flip);
 
@@ -103,7 +105,7 @@ namespace kx.Test.Connection
         [Test]
         public void ConnectionTableReturnsExpectedTableIfObjectIsFlip()
         {
-            c.Flip flip = new c.Flip(new c.Dict(new[] { "Key_1" }, new object[] { new object[] { "Value_1" } }));
+            c.Flip flip = new c.Flip(new c.Dict(FlipKeys, FlipValues));
 
             object result = c.td(flip);
 
@@ -116,8 +118,8 @@ namespace kx.Test.Connection
         {
             c.Dict dict = new c.Dict
                 (
-                    new c.Flip(new c.Dict(new[] { "Key_1" }, new object[] { new object[] { "Value_1" } })),
-                    new c.Flip(new c.Dict(new[] { "Key_1" }, new object[] { new object[] { "Value_1" } }))
+                    new c.Flip(new c.Dict(FlipKeys, FlipValues)),
+                    new c.Flip(new c.Dict(FlipKeys, FlipValues))
                 );
 
             object result = c.td(dict);
