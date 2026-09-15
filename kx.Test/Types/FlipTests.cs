@@ -6,10 +6,12 @@ namespace kx.Test.Types
     [TestFixture]
     public class FlipTests
     {
+        private static readonly string[] FlipKeys = {"Key_1"};
+        private static readonly object[] FlipValues = {new object[] { "Value_1" }};
         [Test]
         public void FlipInitialises()
         {
-            var flip = new c.Flip(new c.Dict(new string[] { "Key_1" }, new object[] { "Value_1" }));
+            var flip = new c.Flip(new c.Dict(FlipKeys, FlipValues));
 
             Assert.IsNotNull(flip);
         }
@@ -23,7 +25,7 @@ namespace kx.Test.Types
         [Test]
         public void FlipAtReturnsValueForColumnName()
         {
-            var flip = new c.Flip(new c.Dict(new string[] { "Key_1" }, new object[] { "Value_1" }));
+            var flip = new c.Flip(new c.Dict(FlipKeys, FlipValues));
 
             object result = flip.at("Key_1");
 
@@ -34,7 +36,7 @@ namespace kx.Test.Types
         [Test]
         public void FlipAtThrowsIfColumnNameIfNotFound()
         {
-            var flip = new c.Flip(new c.Dict(new string[] { "Key_1" }, new object[] { "Value_1" }));
+            var flip = new c.Flip(new c.Dict(FlipKeys, FlipValues));
 
             Assert.Throws<IndexOutOfRangeException>(() => flip.at("Aardvark"));
         }
@@ -42,7 +44,7 @@ namespace kx.Test.Types
         [Test]
         public void FlipAtThrowsIfColumnNameIfNull()
         {
-            var flip = new c.Flip(new c.Dict(new string[] { "Key_1" }, new object[] { "Value_1" }));
+            var flip = new c.Flip(new c.Dict(FlipKeys, FlipValues));
 
             Assert.Throws<IndexOutOfRangeException>(() => flip.at(null));
         }

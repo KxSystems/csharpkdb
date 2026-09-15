@@ -6,10 +6,12 @@ namespace kx.Test.Types
     [TestFixture]
     public class DictTests
     {
+        private static readonly string[] DictKeys = {"Key_1"};
+        private static readonly object[] DictValues = {new object[] { "Value_1" }};
         [Test]
         public void DictInitialises()
         {
-            var dict = new c.Dict(new string[] { "Key_1" }, new object[] { "Value_1" });
+            var dict = new c.Dict(DictKeys, DictValues);
 
             Assert.IsNotNull(dict);
         }
@@ -18,14 +20,14 @@ namespace kx.Test.Types
         public void DictThrowsIfKeysIsNull()
         {
             Assert.Throws<ArgumentNullException>(() =>
-                new c.Dict(null, new object[] { "Value_1" }));
+                new c.Dict(null, DictValues));
         }
 
         [Test]
         public void DictThrowsIfValuesIsNull()
         {
             Assert.Throws<ArgumentNullException>(() =>
-                new c.Dict(new string[] { "Key_1" }, null));
+                new c.Dict(DictKeys, null));
         }
     }
 }
