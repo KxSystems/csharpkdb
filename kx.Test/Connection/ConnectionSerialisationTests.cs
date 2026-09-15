@@ -1013,7 +1013,7 @@ namespace kx.Test.Connection
         }
 
 
-        private T[] CreateTestArray<T>(Func<int, T> elementBuilder, int arraySize)
+        private static T[] CreateTestArray<T>(Func<int, T> elementBuilder, int arraySize)
         {
             T[] array = new T[arraySize];
 

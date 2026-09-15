@@ -263,7 +263,7 @@ namespace kx.Test.Connection
             }
         }
 
-        private Mock<Stream> CreateTestStream(List<byte> bytesWritten)
+        private static Mock<Stream> CreateTestStream(List<byte> bytesWritten)
         {
             Mock<Stream> testStream = new Mock<Stream>();
 
