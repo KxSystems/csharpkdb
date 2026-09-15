@@ -7,7 +7,7 @@ namespace kx.Test.Types
     public class DictTests
     {
         private static readonly string[] DictKeys = {"Key_1"};
-        private static readonly object[] DictValues = {new object[] { "Value_1" }};
+        private static readonly object[] DictValues = {"Value_1"};
         [Test]
         public void DictInitialises()
         {
