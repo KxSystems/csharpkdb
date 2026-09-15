@@ -17,6 +17,7 @@ jobs:
     runs-on: windows-latest
     steps:
     - name: Set up JDK 17
+      if: github.repository == 'KxSystems/csharpkdb'
       uses: actions/setup-java@v5
       with:
         java-version: 17
@@ -30,12 +31,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v5
     - name: Cache SonarQube Cloud packages
+      if: github.repository == 'KxSystems/csharpkdb'
       uses: actions/cache@v5
       with:
         path: ~\sonar\cache
         key: ${{ runner.os }}-sonar
         restore-keys: ${{ runner.os }}-sonar
     - name: Cache SonarQube Cloud scanner
+      if: github.repository == 'KxSystems/csharpkdb'
       id: cache-sonar-scanner
       uses: actions/cache@v5
       with:
@@ -43,13 +46,13 @@ jobs:
         key: ${{ runner.os }}-sonar-scanner
         restore-keys: ${{ runner.os }}-sonar-scanner
     - name: Install SonarQube Cloud scanner
-      if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
+      if: github.repository == 'KxSystems/csharpkdb' && steps.cache-sonar-scanner.outputs.cache-hit != 'true'
       shell: powershell
       run: |
         New-Item -Path ${{ runner.temp }}\scanner -ItemType Directory
         dotnet tool update dotnet-sonarscanner --tool-path ${{ runner.temp }}\scanner
     - name: SonarQube Cloud scanner begin
-      if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && env.SONAR_TOKEN != '') }}
+      if: github.repository == 'KxSystems/csharpkdb' && (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && env.SONAR_TOKEN != ''))
       run: ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"KxSystems_csharpkdb" /o:"kxsystems" /d:sonar.token="$env:SONAR_TOKEN" /d:sonar.cs.vstest.reportsPaths="**\TestResults\*.trx" /d:sonar.cs.opencover.reportsPaths="*\coverage.net8.0.opencover.xml" /d:sonar.verbose=false /d:sonar.exclusions="kx.Test/Scripts/GenerateLocalReport.ps1"
     - name: Build 
       run : dotnet build /p:Configuration=Release .\CSharpKdb.sln
@@ -60,5 +63,5 @@ jobs:
     - name: Test .NET 8
       run: dotnet test .\kx.Test\kx.Test.csproj -c Release -f net8.0 --no-build --logger:trx /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
     - name: SonarQube Cloud scanner finish
-      if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && env.SONAR_TOKEN != '') }} 
+      if: github.repository == 'KxSystems/csharpkdb' && (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && env.SONAR_TOKEN != ''))
       run: ${{ runner.temp }}\scanner\dotnet-sonarscanner end /d:sonar.token="$env:SONAR_TOKEN"
