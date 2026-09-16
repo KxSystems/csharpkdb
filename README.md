@@ -55,7 +55,6 @@ Example:
     try
     {
       connection = new c("localhost", 5001);
-      connection.ReceiveTimeout = 1000;
       connection.e = System.Text.Encoding.UTF8;
 
       Console.WriteLine("Unicode " + connection.k("`$\"c\"$0x52616e627920426ac3b6726b6c756e64204142"));
