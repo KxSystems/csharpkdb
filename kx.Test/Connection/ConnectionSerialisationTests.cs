@@ -9,6 +9,8 @@ namespace kx.Test.Connection
     [TestFixture]
     public class ConnectionSerialisationTests
     {
+        private static readonly string[] Keys = {"Key_1"};
+        private static readonly object[] Values = {"Value_1"};
         private readonly int _testVersionNumber = 3;
 
         [Test]
@@ -402,7 +404,7 @@ namespace kx.Test.Connection
         [Test]
         public void ConnectionSerialisesAndDeserialisesDictInput()
         {
-            c.Dict expected = new c.Dict(new string[] { "Key_1" }, new object[] { "Value_1" });
+            c.Dict expected = new c.Dict(Keys, Values);
 
             using (var connection = new c(_testVersionNumber))
             {
@@ -419,7 +421,7 @@ namespace kx.Test.Connection
         [Test]
         public void ConnectionSerialisesAndDeserialisesFlipInput()
         {
-            c.Flip expected = new c.Flip(new c.Dict(new string[] { "Key_1" }, new object[] { "Value_1" }));
+            c.Flip expected = new c.Flip(new c.Dict(Keys, Values));
 
             using (var connection = new c(_testVersionNumber))
             {
