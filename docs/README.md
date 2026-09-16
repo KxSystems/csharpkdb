@@ -165,6 +165,8 @@ Dict            | dictionary |  99
 
 ## Interacting with kdb+ via an open `c` instance
 
+### Synchronous I/O
+
 Interacting with the kdb+ server is very simple. 
 You must make a basic choice between sending a message to the server where you expect no answer, 
 or will check later for an answer.
@@ -195,6 +197,29 @@ As a special case of the `k` method, we may receive a message from the server wi
 ```c#
 public object k()
 ```
+
+#### Synchronous I/O send and receive timeouts
+
+The time allowed for synchronous socket I/O can be configured in milliseconds using `SendTimeout` and `ReceiveTimeout`:
+
+```c#
+using (var connection = new c("localhost", 5000))
+{
+    connection.SendTimeout = 5000;
+    connection.ReceiveTimeout = 10000;
+
+    object result = connection.k("select from trade");
+}
+```
+
+A value of zero, which is the default, means that no timeout is applied.
+These properties configure the underlying socket and apply to synchronous reads and writes performed by methods such as `k`, `ks`, `kn`, and `kr`.
+They can be used with TCP and Unix-domain socket connections.
+
+If a synchronous read or write times out, the stream reports an `IOException`.
+The connection is closed before the exception is rethrown because the q IPC message may have been only partially sent or received and the connection can no longer be reused safely.
+
+The properties are set after construction, so they do not apply to establishing the connection, TLS authentication, or the initial q IPC authentication handshake.
 
 ### Asynchronous I/O
 
