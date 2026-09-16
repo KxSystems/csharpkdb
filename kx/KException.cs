@@ -1,12 +1,16 @@
 ﻿using System;
+#if !NET8_0_OR_GREATER
 using System.Runtime.Serialization;
+#endif
 
 namespace kx
 {
     /// <summary>
     /// An exception that is thrown when in an error occurs in the <see cref="kx.c"/> class.
     /// </summary>
+#if !NET8_0_OR_GREATER
     [Serializable]
+#endif
     public class KException : Exception
     {
         /// <summary>
@@ -37,7 +41,7 @@ namespace kx
             : base(message, innerException)
         {
         }
-
+#if !NET8_0_OR_GREATER
         /// <summary>
         /// Initialises a new instance of <see cref="KException"/> with serialised data.
         /// </summary>
@@ -47,5 +51,6 @@ namespace kx
             : base(info, context)
         {
         }
+#endif
     }
 }
