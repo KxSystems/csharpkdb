@@ -260,6 +260,27 @@ Asynchronous I/O does not cause q to execute a request in parallel and does not 
 Do not interleave reads and writes for multiple request/response exchanges on the same connection, because a response could be associated with the wrong request. 
 Use a separate connection for each concurrently active exchange, or serialize access to a shared connection.
 
+#### Asynchronous I/O cancellation (send and receive timeouts)
+
+The asynchronous methods also have overloads that accept a `CancellationToken`:
+
+```c#
+using (var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(10)))
+{
+    await connection.knAsync("2 + 3".ToCharArray(), cancellation.Token);
+    object result = await connection.kAsync(cancellation.Token);
+}
+```
+
+Cancellation-token overloads are available for `kAsync`, `k0Async`, every `ksAsync` overload, `knAsync`, and `krAsync`.
+The existing overloads remain available and behave as though `CancellationToken.None` was supplied.
+
+`SendTimeout` and `ReceiveTimeout` apply only to synchronous I/O; they do not impose a deadline on `ReadAsync` or `WriteAsync`.
+Use a `CancellationTokenSource`, optionally with `CancelAfter` or a `TimeSpan` timeout, to place a deadline on an asynchronous exchange.
+
+If cancellation interrupts an asynchronous read or write, the connection is closed before `OperationCanceledException` is rethrown.
+Do not reuse that connection: cancellation may have interrupted a partially transmitted or partially received q IPC message.
+
 ## Accessing items of arrays
 
 We can access elements using the `at` method:

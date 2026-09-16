@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace kx
@@ -577,9 +578,21 @@ namespace kx
         /// <returns>
         /// Deserialised response to request.
         /// </returns>
-        public async Task<object> kAsync()
+        public Task<object> kAsync()
         {
-            await k0Async().ConfigureAwait(false);
+            return kAsync(CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Reads an incoming message from the remote KDB+ process async.
+        /// </summary>
+        /// <param name="cancellationToken">The token used to cancel the asynchronous operation.</param>
+        /// <returns>
+        /// Deserialised response to request.
+        /// </returns>
+        public async Task<object> kAsync(CancellationToken cancellationToken)
+        {
+            await k0Async(cancellationToken).ConfigureAwait(false);
             return r();
         }
 
@@ -734,16 +747,25 @@ namespace kx
         /// <summary>
         /// Waits for an async message and read header.
         /// </summary>
-        public async Task k0Async()
+        public Task k0Async()
+        {
+            return k0Async(CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Waits for an async message and reads its header.
+        /// </summary>
+        /// <param name="cancellationToken">The token used to cancel the asynchronous operation.</param>
+        public async Task k0Async(CancellationToken cancellationToken)
         {
             _readBuffer = new byte[8];
-            await ReadAsync(_readBuffer).ConfigureAwait(false);
+            await ReadAsync(_readBuffer, cancellationToken).ConfigureAwait(false);
 
             ParseHeader();
             _readPosition = 4;
             _readBuffer = new byte[ri() - 8];
 
-            await ReadAsync(_readBuffer).ConfigureAwait(false);
+            await ReadAsync(_readBuffer, cancellationToken).ConfigureAwait(false);
 
             if (IsCompressed)
             {
@@ -760,9 +782,19 @@ namespace kx
         /// Sends an async message to the remote KDB+ process with a specified object parameter.
         /// </summary>
         /// <param name="x">The object parameter.</param>
-        public async Task ksAsync(object x)
+        public Task ksAsync(object x)
         {
-            await wAsync(0, x).ConfigureAwait(false);
+            return ksAsync(x, CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Sends an async message to the remote KDB+ process with a specified object parameter.
+        /// </summary>
+        /// <param name="x">The object parameter.</param>
+        /// <param name="cancellationToken">The token used to cancel the asynchronous operation.</param>
+        public async Task ksAsync(object x, CancellationToken cancellationToken)
+        {
+            await wAsync(0, x, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -770,13 +802,24 @@ namespace kx
         /// </summary>
         /// <param name="s">The expression to send.</param>
         /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
-        public async Task ksAsync(string s)
+        public Task ksAsync(string s)
+        {
+            return ksAsync(s, CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Sends an async message to the remote KDB+ process with a specified expression.
+        /// </summary>
+        /// <param name="s">The expression to send.</param>
+        /// <param name="cancellationToken">The token used to cancel the asynchronous operation.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
+        public async Task ksAsync(string s, CancellationToken cancellationToken)
         {
             if (s == null)
             {
                 throw new ArgumentNullException(nameof(s));
             }
-            await wAsync(0, s.ToCharArray()).ConfigureAwait(false);
+            await wAsync(0, s.ToCharArray(), cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -786,7 +829,20 @@ namespace kx
         /// <param name="s">The expression to send.</param>
         /// <param name="x">The object parameter to send.</param>
         /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
-        public async Task ksAsync(string s, object x)
+        public Task ksAsync(string s, object x)
+        {
+            return ksAsync(s, x, CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Sends an async message to the remote KDB+ process with a specified expression
+        /// and object parameter.
+        /// </summary>
+        /// <param name="s">The expression to send.</param>
+        /// <param name="x">The object parameter to send.</param>
+        /// <param name="cancellationToken">The token used to cancel the asynchronous operation.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
+        public async Task ksAsync(string s, object x, CancellationToken cancellationToken)
         {
             if (s == null)
             {
@@ -798,7 +854,7 @@ namespace kx
                 x
             };
 
-            await wAsync(0, array).ConfigureAwait(false);
+            await wAsync(0, array, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -809,7 +865,21 @@ namespace kx
         /// <param name="x">The first object parameter to send.</param>
         /// <param name="y">The second object parameter to send.</param>
         /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
-        public async Task ksAsync(string s, object x, object y)
+        public Task ksAsync(string s, object x, object y)
+        {
+            return ksAsync(s, x, y, CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Sends an async message to the remote KDB+ process with a specified expression
+        /// and object parameters.
+        /// </summary>
+        /// <param name="s">The expression to send.</param>
+        /// <param name="x">The first object parameter to send.</param>
+        /// <param name="y">The second object parameter to send.</param>
+        /// <param name="cancellationToken">The token used to cancel the asynchronous operation.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="s"/> parameter was null.</exception>
+        public async Task ksAsync(string s, object x, object y, CancellationToken cancellationToken)
         {
             if (s == null)
             {
@@ -822,7 +892,7 @@ namespace kx
                 y
             };
 
-            await wAsync(0, array).ConfigureAwait(false);
+            await wAsync(0, array, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -907,10 +977,21 @@ namespace kx
         /// Sends an async message to the remote KDB+ process with a specified object parameter.
         /// </summary>
         /// <param name="x">The object parameter.</param>
-        public async Task knAsync(object x)
+        public Task knAsync(object x)
         {
-            await wAsync(1, x).ConfigureAwait(false);
+            return knAsync(x, CancellationToken.None);
         }
+
+        /// <summary>
+        /// Sends an async message to the remote KDB+ process with a specified object parameter.
+        /// </summary>
+        /// <param name="x">The object parameter.</param>
+        /// <param name="cancellationToken">The token used to cancel the asynchronous operation.</param>
+        public async Task knAsync(object x, CancellationToken cancellationToken)
+        {
+            await wAsync(1, x, cancellationToken).ConfigureAwait(false);
+        }
+
         /// <summary>
         /// Sends a response message to the remote KDB+ process.
         /// </summary>
@@ -930,9 +1011,22 @@ namespace kx
         /// <remarks>
         /// This should be called only during processing of an incoming sync message.
         /// </remarks>
-        public async Task krAsync(object x)
+        public Task krAsync(object x)
         {
-            await wAsync(2, x).ConfigureAwait(false);
+            return krAsync(x, CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Sends a response message to the remote KDB+ process.
+        /// </summary>
+        /// <param name="x">The response message to send.</param>
+        /// <param name="cancellationToken">The token used to cancel the asynchronous operation.</param>
+        /// <remarks>
+        /// This should be called only during processing of an incoming sync message.
+        /// </remarks>
+        public async Task krAsync(object x, CancellationToken cancellationToken)
+        {
+            await wAsync(2, x, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1074,13 +1168,32 @@ namespace kx
         /// </summary>
         /// <param name="bytes">The byte array to be writtern to the client stream.</param>
         /// <param name="number">The number of bytes to be written to the client stream.</param>
-        protected async Task WriteAsync(byte[] bytes, int number)
+        protected Task WriteAsync(byte[] bytes, int number)
         {
+            return WriteAsync(bytes, number, CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Writes a specified byte array directly to the underlying client stream asynchronously.
+        /// </summary>
+        /// <param name="bytes">The byte array to be written to the client stream.</param>
+        /// <param name="number">The number of bytes to be written to the client stream.</param>
+        /// <param name="cancellationToken">The token used to cancel the asynchronous operation.</param>
+        protected async Task WriteAsync(byte[] bytes, int number, CancellationToken cancellationToken)
+        {
+            try
+            {
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP2_1_OR_GREATER
-            await _clientStream.WriteAsync(bytes.AsMemory(0, number)).ConfigureAwait(false);
+                await _clientStream.WriteAsync(bytes.AsMemory(0, number), cancellationToken).ConfigureAwait(false);
 #else
-            await _clientStream.WriteAsync(bytes,0,number).ConfigureAwait(false);
+                await _clientStream.WriteAsync(bytes,0,number,cancellationToken).ConfigureAwait(false);
 #endif
+            }
+            catch (OperationCanceledException)
+            {
+                Close();
+                throw;
+            }
         }
 
         /// <summary>
@@ -2107,14 +2220,10 @@ namespace kx
             }
         }
 
-        private async Task wAsync(int i, object x)
+        private async Task wAsync(int i, object x, CancellationToken cancellationToken)
         {
             byte[] buffer = Serialize(i, x);
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP2_1_OR_GREATER
-            await _clientStream.WriteAsync(buffer.AsMemory(0, buffer.Length)).ConfigureAwait(false);
-#else
-            await _clientStream.WriteAsync(buffer,0,buffer.Length).ConfigureAwait(false);
-#endif
+            await WriteAsync(buffer, buffer.Length, cancellationToken).ConfigureAwait(false);
         }
 
         private void read(byte[] b)
@@ -2146,29 +2255,37 @@ namespace kx
             }
         }
 
-        private async Task ReadAsync(byte[] b)
+        private async Task ReadAsync(byte[] b, CancellationToken cancellationToken)
         {
-            int k = 0;
-            int j = b.Length;
-            while (true)
+            try
             {
-                if (k < j)
+                int k = 0;
+                int j = b.Length;
+                while (true)
                 {
-                    int i;
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP2_1_OR_GREATER
-                    if ((i = await _clientStream.ReadAsync(b.AsMemory(k, Math.Min(_maxBufferSize, j - k))).ConfigureAwait(false)) == 0)
-#else
-                    if ((i = await _clientStream.ReadAsync(b,k,Math.Min(_maxBufferSize,j-k)).ConfigureAwait(false)) == 0)
-#endif
+                    if (k < j)
                     {
-                        break;
+                        int i;
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP2_1_OR_GREATER
+                        if ((i = await _clientStream.ReadAsync(b.AsMemory(k, Math.Min(_maxBufferSize, j - k)),cancellationToken).ConfigureAwait(false)) == 0)
+#else
+                        if ((i = await _clientStream.ReadAsync(b,k,Math.Min(_maxBufferSize,j-k),cancellationToken).ConfigureAwait(false)) == 0)
+#endif
+                        {
+                            break;
+                        }
+                        k += i;
+                        continue;
                     }
-                    k += i;
-                    continue;
+                    return;
                 }
-                return;
+                throw new KException("read");
             }
-            throw new KException("read");
+            catch (OperationCanceledException)
+            {
+                Close();
+                throw;
+            }
         }
 
         private static int ns(string s)
