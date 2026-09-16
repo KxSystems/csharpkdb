@@ -369,6 +369,7 @@ namespace kx
         /// </remarks>
         protected c()
         {
+            _maxBufferSize = DefaultMaxBufferSize;
             _versionNumber = 3;
         }
 
@@ -382,6 +383,7 @@ namespace kx
         /// </remarks>
         internal c(int versionNumber)
         {
+            _maxBufferSize = DefaultMaxBufferSize;
             _versionNumber = versionNumber;
         }
 
@@ -411,6 +413,7 @@ namespace kx
         internal c(Stream clientStream, int versionNumber)
         {
             _clientStream = clientStream;
+            _maxBufferSize = DefaultMaxBufferSize;
             _versionNumber = versionNumber;
         }
 
