@@ -18,6 +18,20 @@ namespace kx.Test.Connection
         }
 
         [Test]
+        public void ConnectionExposesSynchronousSocketTimeouts()
+        {
+            using (var server = new TestableTcpServer())
+            using (var connection = new c("localhost", server.TestPort))
+            {
+                connection.SendTimeout = 1000;
+                connection.ReceiveTimeout = 2000;
+
+                Assert.AreEqual(1000, connection.SendTimeout);
+                Assert.AreEqual(2000, connection.ReceiveTimeout);
+            }
+        }
+
+        [Test]
         public void ConnectionThrowsIfHostIsNull()
         {
             Assert.Throws<ArgumentNullException>(() => new c(null as string, 8080));

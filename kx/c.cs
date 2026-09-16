@@ -495,7 +495,27 @@ namespace kx
         public static Encoding e { get; set; } = Encoding.ASCII;
 
         /// <summary>
-        /// Requests that the underlying stream and TCP connection be closed.
+        /// Gets or sets the amount of time, in milliseconds, that a synchronous send operation
+        /// blocks waiting for completion. A value of zero means no timeout.
+        /// </summary>
+        public int SendTimeout
+        {
+            get { return _socket.SendTimeout; }
+            set { _socket.SendTimeout = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the amount of time, in milliseconds, that a synchronous receive operation
+        /// blocks waiting for data. A value of zero means no timeout.
+        /// </summary>
+        public int ReceiveTimeout
+        {
+            get { return _socket.ReceiveTimeout; }
+            set { _socket.ReceiveTimeout = value; }
+        }
+
+        /// <summary>
+        /// Requests that the underlying stream and connection be closed.
         /// </summary>
         public void Close()
         {
@@ -503,7 +523,10 @@ namespace kx
             {
                 _clientStream.Close();
             }
-            _socket.Close();
+            if (_socket != null)
+            {
+                _socket.Close();
+            }
         }
 
         /// <summary>
@@ -1035,7 +1058,15 @@ namespace kx
         /// <param name="number">The number of bytes to be written to the client stream.</param>
         protected void Write(byte[] bytes, int number)
         {
-            _clientStream.Write(bytes, 0, number);
+            try
+            {
+                _clientStream.Write(bytes, 0, number);
+            }
+            catch (IOException)
+            {
+                Close();
+                throw;
+            }
         }
 
         /// <summary>
@@ -1709,7 +1740,7 @@ namespace kx
         private void w(int i, object x)
         {
             byte[] buffer = Serialize(i, x);
-            _clientStream.Write(buffer, 0, buffer.Length);
+            Write(buffer, buffer.Length);
         }
         
         private bool rb()
@@ -2088,23 +2119,31 @@ namespace kx
 
         private void read(byte[] b)
         {
-            int k = 0;
-            int j = b.Length;
-            while (true)
+            try
             {
-                if (k < j)
+                int k = 0;
+                int j = b.Length;
+                while (true)
                 {
-                    int i;
-                    if ((i = _clientStream.Read(b, k, Math.Min(_maxBufferSize, j - k))) == 0)
+                    if (k < j)
                     {
-                        break;
+                        int i;
+                        if ((i = _clientStream.Read(b, k, Math.Min(_maxBufferSize, j - k))) == 0)
+                        {
+                            break;
+                        }
+                        k += i;
+                        continue;
                     }
-                    k += i;
-                    continue;
+                    return;
                 }
-                return;
+                throw new KException("read");
             }
-            throw new KException("read");
+            catch (IOException)
+            {
+                Close();
+                throw;
+            }
         }
 
         private async Task ReadAsync(byte[] b)
