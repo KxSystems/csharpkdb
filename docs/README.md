@@ -196,6 +196,44 @@ As a special case of the `k` method, we may receive a message from the server wi
 public object k()
 ```
 
+### Asynchronous I/O
+
+The `c` class also provides methods that return `Task` or `Task<object>`. These are an alternative to the `ks` and `k` methods.
+
+These methods use asynchronous stream I/O so that the calling thread is not blocked while data is being sent to, or received from, kdb+. 
+This is useful in applications such as GUI programs and servers, where blocking a thread while waiting for network I/O would reduce responsiveness or scalability.
+
+The returned task represents completion of the I/O operation. It should normally be awaited so that the operation completes and any exception reported by the method is observed:
+
+```c#
+await connection.ksAsync("show", "hello");
+
+object message = await connection.kAsync();
+```
+
+`Task` means that the operation has no result, whereas `Task<object>` produces the deserialized q value when awaited. 
+
+The asynchronous methods correspond to the following IPC operations:
+
+| Method | Operation |
+|--------|-----------|
+| `ksAsync(...)` | Sends an `asynchronous` IPC message. It waits for the send to complete, but q does not send a response. |
+| `knAsync(object)` | Sends a `synchronous` IPC request, but does not read its response. Use `kAsync()` to read the response. |
+| `kAsync()` | Waits asynchronously for the next incoming IPC message and returns its deserialized value. It does not send a request. |
+| `k0Async()` | Reads and validates the next IPC message and prepares it for deserialization. It does not return the message value; most callers should use `kAsync()` instead. |
+| `krAsync(object)` | Sends an IPC response message while processing an incoming synchronous request. |
+
+For example, a synchronous request and its response can be handled asynchronously as follows:
+
+```c#
+await connection.knAsync("2 + 3".ToCharArray());
+// can do something else
+object result = await connection.kAsync();
+```
+
+Asynchronous I/O does not cause q to execute a request in parallel and does not make a `c` instance safe for concurrent use. 
+Do not interleave reads and writes for multiple request/response exchanges on the same connection, because a response could be associated with the wrong request. 
+Use a separate connection for each concurrently active exchange, or serialize access to a shared connection.
 
 ## Accessing items of arrays
 
