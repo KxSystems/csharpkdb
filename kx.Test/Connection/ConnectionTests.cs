@@ -1,6 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+#if NETCOREAPP3_1_OR_GREATER
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
+#endif
 using System.Threading.Tasks;
 using kx.Test.TestUtils;
 using NUnit.Framework;
@@ -89,6 +95,117 @@ namespace kx.Test.Connection
                 Assert.IsNotNull(error);
             }
         }
+
+        [Test]
+        public void ConnectionInitialisesUsingIpv6Socket()
+        {
+            if (!Socket.OSSupportsIPv6)
+            {
+                Assert.Ignore("IPv6 is not supported on this host.");
+            }
+
+            TestableIpv6Server server;
+            try
+            {
+                server = new TestableIpv6Server();
+            }
+            catch (SocketException exception)
+                when (exception.SocketErrorCode == SocketError.AddressNotAvailable)
+            {
+                Assert.Ignore("IPv6 loopback is not configured on this host.");
+                return;
+            }
+
+            using (server)
+            using (var connection = new c(
+                IPAddress.IPv6Loopback.ToString(),
+                server.Port,
+                Environment.UserName,
+                1024,
+                false,
+                c.IpVersionPreference.IPv6))
+            {
+                Assert.IsNotNull(connection);
+            }
+        }
+
+        [Test]
+        public void ConnectionInitialisesUsingDualStackSocket()
+        {
+            using (var server = new TestableTcpServer())
+            using (var connection = new c(
+                IPAddress.Loopback.ToString(),
+                server.TestPort,
+                Environment.UserName,
+                1024,
+                false,
+                c.IpVersionPreference.DualStack))
+            {
+                Assert.IsNotNull(connection);
+            }
+        }
+
+#if NETCOREAPP3_1_OR_GREATER
+        [Test]
+        public void ConnectionInitialisesUsingUnixDomainSocket()
+        {
+            using (var server = new TestableUnixDomainSocketServer())
+            using (var connection = new c(server.SocketPath, Environment.UserName))
+            {
+                Assert.IsNotNull(connection);
+            }
+        }
+
+        [Test]
+        public void UnixDomainSocketConstructorAcceptsNullTlsOptionsAsDisabled()
+        {
+            using (var server = new TestableUnixDomainSocketServer())
+            using (var connection = new c(server.SocketPath, Environment.UserName, 1024, null))
+            {
+                Assert.IsNotNull(connection);
+            }
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void ConnectionInitialisesUsingTls(bool useExplicitValues)
+        {
+            using (var server = new TestableTlsServer())
+            {
+                KdbTlsOptions options = KdbTls.Insecure(
+                    useExplicitValues ? "localhost" : null);
+                options.EnabledSslProtocols =
+                    useExplicitValues ? SslProtocols.Tls12 : (SslProtocols?)null;
+                options.CertificateRevocationCheckMode = useExplicitValues
+                    ? X509RevocationMode.NoCheck
+                    : X509RevocationMode.Offline;
+
+                using (var connection = new c(
+                    "localhost",
+                    server.Port,
+                    Environment.UserName,
+                    1024,
+                    options))
+                {
+                    Assert.IsNotNull(connection);
+                }
+            }
+        }
+
+        [Test]
+        public void TlsBooleanOverloadRejectsUntrustedCertificate()
+        {
+            using (var server = new TestableTlsServer(allowClientRejection: true))
+            {
+                Assert.Throws<AuthenticationException>(() => new c(
+                    "localhost",
+                    server.Port,
+                    Environment.UserName,
+                    1024,
+                    true));
+            }
+        }
+#endif
 
         [Test]
         public void ProtectedConstructorAndBufferStateAreAccessibleToDerivedTypes()
