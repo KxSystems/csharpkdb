@@ -61,6 +61,14 @@ namespace kx.Test.Types
         }
 
         [Test]
+        public void DateToDateTimeReturnsNullDateTimeIfValueIsInt32MinValue()
+        {
+            c.Date date = new c.Date(int.MinValue);
+
+            Assert.AreEqual(new DateTime(0L), date.DateTime());
+        }
+
+        [Test]
         public void DateToDateTimeReturnsExpectedDateTimeIfValueIsInt32Max()
         {
             DateTime expected = DateTime.MaxValue;

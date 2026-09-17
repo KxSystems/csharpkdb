@@ -222,8 +222,8 @@ namespace kx
                         break;
                 }
                 _socket.Connect(host, port);
-                _isLoopback = _socket.RemoteEndPoint is IPEndPoint &&
-                    IPAddress.IsLoopback((_socket.RemoteEndPoint as IPEndPoint).Address);
+                _isLoopback = IPAddress.IsLoopback(
+                    ((IPEndPoint)_socket.RemoteEndPoint).Address);
             }
             _clientStream = new NetworkStream(_socket);
             if (tlsOptions != null && tlsOptions.Enabled)
@@ -1581,7 +1581,12 @@ namespace kx
 
         private void w(string s)
         {
-            _writePosition += e.GetBytes(s,0,s.Length,_writeBuffer,_writePosition);
+            int length = s.IndexOf('\0');
+            if (length < 0)
+            {
+                length = s.Length;
+            }
+            _writePosition += e.GetBytes(s,0,length,_writeBuffer,_writePosition);
             _writeBuffer[_writePosition++] = 0;
         }
 
@@ -1708,8 +1713,6 @@ namespace kx
             w(n(x));
             switch (t)
             {
-                case 3:
-                    break;
                 case 0:
                     {
                         foreach (object obj in (object[])x)

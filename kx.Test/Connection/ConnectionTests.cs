@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 #if NETCOREAPP3_1_OR_GREATER
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
@@ -330,6 +331,177 @@ namespace kx.Test.Connection
             }
         }
 
+        [Test]
+        public void SynchronousReadDecompressesMessage()
+        {
+            string expected = new string('x', 5000);
+            byte[] message = CreateCompressedMessage(expected);
+
+            using (var stream = new MemoryStream(message))
+            using (var connection = new TestConnection(stream))
+            {
+                connection.k0();
+
+                Assert.IsTrue(connection.IsCompressed);
+                Assert.AreEqual(expected, connection.ExposedReadObject());
+            }
+        }
+
+        [Test]
+        public async Task AsynchronousReadDecompressesMessage()
+        {
+            string expected = new string('x', 5000);
+            byte[] message = CreateCompressedMessage(expected);
+
+            using (var stream = new MemoryStream(message))
+            using (var connection = new TestConnection(stream))
+            {
+                await connection.k0Async();
+
+                Assert.IsTrue(connection.IsCompressed);
+                Assert.AreEqual(expected, connection.ExposedReadObject());
+            }
+        }
+
+        [TestCase(1)]
+        [TestCase(2)]
+        public void SynchronousMessageWritesExpectedMessageType(int messageType)
+        {
+            const string expected = "payload";
+            using (var stream = new MemoryStream())
+            using (var connection = new c(stream))
+            {
+                if (messageType == 1)
+                {
+                    connection.kn(expected);
+                }
+                else
+                {
+                    connection.kr(expected);
+                }
+
+                byte[] message = stream.ToArray();
+                Assert.AreEqual(messageType, message[1]);
+                Assert.AreEqual(expected, connection.Deserialize(message));
+            }
+        }
+
+        [Test]
+        public void ProtectedReadInt32ReturnsExpectedValue()
+        {
+            const int expected = 42;
+            using (var connection = new TestConnection())
+            {
+                byte[] message = connection.Serialize(1, expected);
+                connection.Deserialize(message);
+                connection.ExposedReadPosition = 9;
+
+                Assert.AreEqual(expected, connection.ExposedReadInt32());
+            }
+        }
+
+        [Test]
+        public void SynchronousReadThrowsWhenStreamEndsBeforeHeader()
+        {
+            using (var connection = new c(new MemoryStream()))
+            {
+                KException exception = Assert.Throws<KException>(() => connection.k0());
+
+                Assert.AreEqual("read", exception.Message);
+            }
+        }
+
+        [Test]
+        public void AsynchronousReadThrowsWhenStreamEndsBeforeHeader()
+        {
+            using (var connection = new c(new MemoryStream()))
+            {
+                KException exception = Assert.ThrowsAsync<KException>(
+                    async () => await connection.k0Async());
+
+                Assert.AreEqual("read", exception.Message);
+            }
+        }
+
+        [Test]
+        public void StreamReadThrowsKdbExceptionMessage()
+        {
+            const string expected = "KDB+_Error";
+            byte[] text = Encoding.ASCII.GetBytes(expected);
+            byte[] message = new byte[10 + text.Length];
+            message[0] = 1;
+            message[1] = 1;
+            Buffer.BlockCopy(BitConverter.GetBytes(message.Length), 0, message, 4, 4);
+            message[8] = 128;
+            Buffer.BlockCopy(text, 0, message, 9, text.Length);
+
+            using (var connection = new c(new MemoryStream(message)))
+            {
+                KException exception = Assert.Throws<KException>(() => connection.k0());
+
+                Assert.AreEqual(expected, exception.Message);
+            }
+        }
+
+        [Test]
+        public void NullTemporalValuesRoundTrip()
+        {
+            object[] expectedValues =
+            {
+                new DateTime(0L),
+                new c.KTimespan(long.MinValue),
+                new TimeSpan(long.MinValue)
+            };
+
+            using (var connection = new c(3))
+            {
+                foreach (object expected in expectedValues)
+                {
+                    byte[] message = connection.Serialize(1, expected);
+
+                    Assert.AreEqual(expected, connection.Deserialize(message));
+                }
+            }
+        }
+
+        [Test]
+        public void StringSerializationStopsAtEmbeddedNullCharacter()
+        {
+            const string expected = "before";
+            using (var connection = new c(3))
+            {
+                byte[] message = connection.Serialize(1, expected + "\0after");
+
+                Assert.AreEqual(expected, connection.Deserialize(message));
+            }
+        }
+
+        [Test]
+        public void LegacyDatetimeNullDeserializesToDateTimeNull()
+        {
+            byte[] message = new byte[17];
+            message[0] = 1;
+            message[1] = 1;
+            Buffer.BlockCopy(BitConverter.GetBytes(message.Length), 0, message, 4, 4);
+            message[8] = unchecked((byte)-15);
+            Buffer.BlockCopy(BitConverter.GetBytes(double.NaN), 0, message, 9, 8);
+
+            using (var connection = new c(3))
+            {
+                Assert.AreEqual(new DateTime(0L), connection.Deserialize(message));
+            }
+        }
+
+        private static byte[] CreateCompressedMessage(string value)
+        {
+            using (var serializer = new c(3))
+            {
+                byte[] message = serializer.Serialize(1, value, true);
+                Assert.AreEqual(1, message[2], "Test input was not compressed.");
+                return message;
+            }
+        }
+
         private sealed class TestConnection : c
         {
             internal TestConnection()
@@ -354,6 +526,11 @@ namespace kx.Test.Connection
             internal object ExposedReadObject()
             {
                 return ReadObject();
+            }
+
+            internal int ExposedReadInt32()
+            {
+                return ReadInt32();
             }
 
             internal Task ExposedWriteAsync(byte[] bytes, int number)
