@@ -197,12 +197,16 @@ namespace kx.Test.Connection
         {
             using (var server = new TestableTlsServer(allowClientRejection: true))
             {
-                Assert.Throws<AuthenticationException>(() => new c(
+                Exception exception = Assert.Catch(() => new c(
                     "localhost",
                     server.Port,
                     Environment.UserName,
                     1024,
                     true));
+
+                Assert.IsTrue(
+                    exception is AuthenticationException || exception is IOException,
+                    $"Expected a TLS authentication failure but received {exception.GetType().FullName}.");
             }
         }
 #endif

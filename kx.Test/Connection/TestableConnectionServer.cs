@@ -105,9 +105,18 @@ namespace kx.Test.TestUtils
             var names = new SubjectAlternativeNameBuilder();
             names.AddDnsName("localhost");
             request.CertificateExtensions.Add(names.Build());
-            _certificate = request.CreateSelfSigned(
+            string password = Guid.NewGuid().ToString("N");
+            using (X509Certificate2 generatedCertificate = request.CreateSelfSigned(
                 DateTimeOffset.UtcNow.AddMinutes(-5),
-                DateTimeOffset.UtcNow.AddDays(1));
+                DateTimeOffset.UtcNow.AddDays(1)))
+            {
+                _certificate = new X509Certificate2(
+                    generatedCertificate.Export(X509ContentType.Pfx, password),
+                    password,
+                    X509KeyStorageFlags.Exportable |
+                    X509KeyStorageFlags.MachineKeySet |
+                    X509KeyStorageFlags.PersistKeySet);
+            }
 
             _listener = new TcpListener(IPAddress.Loopback, 0);
             _listener.Start();
