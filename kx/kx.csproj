@@ -12,6 +12,8 @@
     <RepositoryUrl>https://github.com/KxSystems/csharpkdb</RepositoryUrl>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>kx.snk</AssemblyOriginatorKeyFile>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
@@ -22,6 +24,9 @@
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
       <_Parameter1>kx.Benchmark.Test, PublicKey=0024000004800000940000000602000000240000525341310004000001000100dd2d944d77ec2cffdd50c7a1b4e241a5b69a393753eff2d34ad56e94e8bc7cba4a07f28980e4eff8f258b5f12cbc40589bcf6422f1a7c7e182959a93ee965179ba773a18aacc607e1180ae4bd847f6630b39a3f981c46205344fe523863a5892c2ddf0d672aaf3e9253a53b7ce62e0bae3db9f9e999b981fa2a8467f3f5642ca</_Parameter1>
     </AssemblyAttribute>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="../README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
